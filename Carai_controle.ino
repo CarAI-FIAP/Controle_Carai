@@ -21,10 +21,10 @@
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_FILTRO 0
+#define EXIST_FILTRO 1
 
 #define EXIST_Ultrassonico 1
-#define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 0)
+#define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1)
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
 
@@ -495,11 +495,11 @@ void Prints(){
   #if EXIST_Ultrassonico
   #if EXIST_Ultrassonico_ORIGINAL
   dados_print_PC += String(distancia_1);
-  dados_print_PC += "\t";
+  dados_print_PC += " ";
   #endif
   #if EXIST_Ultrassonico_FILTRO
   dados_print_PC += String(distancia_1f);
-  dados_print_PC += "\t";
+  dados_print_PC += " ";
   #endif
   #endif
   
