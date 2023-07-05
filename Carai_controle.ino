@@ -19,16 +19,16 @@
 #define EXIST_SERVO 1 // existencia do servo motoror
 #define EXIST_CALIBRA_SERVO (EXIST_SERVO && EXIST_BLUE && 1) // existencia da função de calibrar manualmente o servo motor
 
-#define EXIST_Ultrassonico 1
+#define EXIST_Ultrassonico 0
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_FILTRO 1
+#define EXIST_FILTRO 0
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1)
 
 
 #define EXIST_DADOS 1
-#define EXIST_COMPARACAO (EXIST_DADOS && 0)
+#define EXIST_COMPARACAO (!EXIST_FILTRO || 0)  //define a existencia de comparação entre os valores do filtro
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
 //-----------------------------------------------------------------------------
@@ -66,6 +66,7 @@ SoftwareSerial HC06(50, 51); //define os pinos TX, RX do bluetooth para arduino 
 
 #define INTERVALO_MEDIA_ULTRA 10
 #define NUMERO_FILTROS_ULTRA 1
+#define DISTANCIA_PARA 8 //distancia minima (em cm) para o carro parar
 
 
 //-----------------------------------------------------------------------------
@@ -75,6 +76,8 @@ int switch_case;  // variavel que controla os casos do switch case
 int pwm = PWM_MAXIMO; //pwm inicial
 
 int angulo_teorico = ANGULO_INICIAL; // recebe o angulo (via bluetooth) que servo deve atingir
+
+bool trava_remoto = true;
 
 String dados_print_HC06 = " ";  //armazena os dados que serão printado no bluetooth
 String dados_print_PC = " ";  //armazena os dados que serão printado no monitor serial
@@ -394,28 +397,39 @@ void Ajuste_servo_manual(){
 // controle remoto do veiculo
 #if EXIST_CONTROLE_REMOTO
 void Controle_remoto(){
- if (HC06.available()) {
-    msg_blue = HC06.read();
-    if(msg_blue == 'A'){
-      motor_direito.frente(pwm);
-      motor_esquerdo.frente(pwm); 
-    }else if(msg_blue == 'B'){
-      motor_direito.para();
-      motor_esquerdo.para();
-    }else if(msg_blue == 'C'){
-      motor_direito.para();
-      motor_esquerdo.para();
-      switch_case = 0;
-    }else if(msg_blue == '1'){
-      angulo_teorico++;
-      if(angulo_teorico > 180){angulo_teorico = 180;}
-      msg_blue = 0;
-    }else if(msg_blue == '2'){
-      angulo_teorico--;
-      if(angulo_teorico < 0){angulo_teorico = 0;}
-      msg_blue = 0;
-    }
-  }
+ #if EXIST_Ultrassonico
+ if (distancia <= DISTANCIA_PARA){
+  trava_remoto = false;
+  }else{trava_remoto = true;}
+ #endif
+
+ if(trava_remoto){
+   if (HC06.available()) {
+     msg_blue = HC06.read();
+     if(msg_blue == 'A'){
+       motor_direito.frente(pwm);
+       motor_esquerdo.frente(pwm); 
+     }else if(msg_blue == 'B'){
+       motor_direito.para();
+       motor_esquerdo.para();
+     }else if(msg_blue == 'C'){
+       motor_direito.para();
+       motor_esquerdo.para();
+       switch_case = 0;
+     }else if(msg_blue == '1'){
+       angulo_teorico++;
+       if(angulo_teorico > 180){angulo_teorico = 180;}
+       msg_blue = 0;
+     }else if(msg_blue == '2'){
+       angulo_teorico--;
+       if(angulo_teorico < 0){angulo_teorico = 0;}
+       msg_blue = 0;
+     }
+   }
+ }else{
+  motor_direito.para();
+  motor_esquerdo.para();
+ }
   servo.controle_ajuste(angulo_teorico); 
 }
 #endif
