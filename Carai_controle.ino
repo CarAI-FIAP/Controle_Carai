@@ -6,7 +6,7 @@
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
-#define EXIST_UNO 1
+#define EXIST_UNO 0 // por enqunto define se vai utilizar arduino UNO ou mega
 #define EXIST_MEGA (!EXIST_UNO)
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth 
@@ -33,13 +33,14 @@
 
 #define PIN_SERVO 8 // pino de controle do servo motor 
 
-#if EXIST_MEGA
-#define HC06 Serial1 // serial utilizado para o modulo bluetooth para arduino MEGA
-#endif
-
-#if EXIST_UNO 
+#if EXIST_UNO
 #if EXIST_BLUE
-SoftwareSerial HC06(5, 6); //define os pinos TX, RX do bluetooth para arduino UNO
+SoftwareSerial HC06(6, 5); //define os pinos TX, RX do bluetooth para arduino MEGA
+#endif
+#endif
+#if EXIST_MEGA 
+#if EXIST_BLUE
+SoftwareSerial HC06(50, 51); //define os pinos TX, RX do bluetooth para arduino MEGA
 #endif
 #endif
 
@@ -394,7 +395,6 @@ void Prints(){
   dados_print_HC06 = " ";
   
 }
-
 
 
 
