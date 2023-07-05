@@ -23,7 +23,7 @@
 
 #define EXIST_FILTRO 0
 
-#define EXIST_Ultrassonico 0
+#define EXIST_Ultrassonico 1
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 0)
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
@@ -486,6 +486,11 @@ void Prints(){
   dados_print_PC += " ";
   // dados_print_PC += String(vel);
   // dados_print_PC += "\t";
+
+  #if EXIST_SERVO
+  dados_print_PC += String(map(angulo_teorico, 0, 180, -90, 90));
+  dados_print_PC += " ";
+  #endif
   
   #if EXIST_Ultrassonico
   #if EXIST_Ultrassonico_ORIGINAL
@@ -498,10 +503,6 @@ void Prints(){
   #endif
   #endif
   
-  #if EXIST_SERVO
-  dados_print_PC += String(map(angulo_teorico, 0, 180, -90, 90));
-  dados_print_PC += " ";
-  #endif
 
   #if EXIST_AJUSTE_GRAFICO
   dados_print_PC += String(50);
