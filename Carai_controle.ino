@@ -12,23 +12,23 @@
 #define EXIST_BLUE 1 // existencia do modulo bluetooth 
 
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
+#define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
 #define EXIST_ENCODER (EXIST_MOTOR_DC && 0) // existencia dos enconders
 #define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
-#define EXIST_CALIBRA_PWM_MANUAL (!EXIST_CALIBRA_PWM && EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
 
 #define EXIST_SERVO 1 // existencia do servo motoror
 #define EXIST_CALIBRA_SERVO (EXIST_SERVO && EXIST_BLUE && 1) // existencia da função de calibrar manualmente o servo motor
 
-#define EXIST_Ultrassonico 0
-
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
 #define EXIST_FILTRO 0
-#define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1)
+
+#define EXIST_Ultrassonico 0
+#define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 0)
+#define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
 
 #define EXIST_DADOS 1
-#define EXIST_COMPARACAO (!EXIST_FILTRO || 0)  //define a existencia de comparação entre os valores do filtro
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
 //-----------------------------------------------------------------------------
@@ -40,12 +40,12 @@
 
 #define PIN_SERVO 8 // pino de controle do servo motor 
 
-#define TRIG 30
-#define ECHO 31
+#define PIN_TRIG_1 7 //pino trig do ultrassonico 1
+#define PIN_ECHO_1 6 //pino echo do ultrassonico 1
 
 #if EXIST_UNO
 #if EXIST_BLUE
-SoftwareSerial HC06(6, 5); //define os pinos TX, RX do bluetooth para arduino MEGA
+SoftwareSerial HC06(5, 4); //define os pinos TX, RX do bluetooth para arduino MEGA
 #endif
 #endif
 #if EXIST_MEGA 
@@ -103,9 +103,8 @@ int estado_motor;
 #endif
 
 #if EXIST_Ultrassonico 
-float tempoEcho = 0;  //armazena o tempo de pulso sonoro do sensor 
-float distancia;  //distancia vinda do sensor ultrassonico em cm
 const float velocidadeSom = 0.00034029; //velocidade do som em metros/microsegundo
+float distancia_1, distancia_1f;
 #endif
 
 /*******************************************************************/
@@ -203,7 +202,38 @@ Servos servo(PIN_SERVO, SERVO_SINAL_MIN, SERVO_SINAL_MAX );
 #endif
 
 /*******************************************************************/
-// inicio da classe responsavel por aplicar os filtros
+#if EXIST_Ultrassonico
+//classe para controle dos sensores ultrassonicos
+class Sensor_ultrassonico {
+  int pin_echo;
+  int pin_trig;
+  float tempoEcho;
+  float dist;  
+  
+ public:
+  Sensor_ultrassonico(int echo, int trig){
+  dist = 0;
+  tempoEcho = 0;
+  pin_echo = echo;
+  pin_trig = trig;
+  pinMode(pin_echo, INPUT); 
+  pinMode(pin_trig, OUTPUT); 
+  }
+
+ float Calcula_dist(){
+   digitalWrite(pin_trig, HIGH);
+   delayMicroseconds(10);
+   digitalWrite(pin_trig, LOW);
+   tempoEcho = pulseIn(pin_echo, HIGH);
+   dist = ((tempoEcho*velocidadeSom)/2)*100;
+   return dist;
+ }
+};
+Sensor_ultrassonico ultra_1(PIN_ECHO_1, PIN_TRIG_1);
+#endif
+
+/*******************************************************************/
+// classe responsavel por aplicar os filtros
 #if EXIST_FILTRO
 class Filtro {
   float** sinal;
@@ -238,7 +268,7 @@ class Filtro {
   }  
 };
 #if EXIST_Ultrassonico_FILTRO
-Filtro Sensor_ultra(INTERVALO_MEDIA_ULTRA, NUMERO_FILTROS_ULTRA);
+Filtro Sensor_ultra_1(INTERVALO_MEDIA_ULTRA, NUMERO_FILTROS_ULTRA);
 #endif
 #endif
 
@@ -398,7 +428,7 @@ void Ajuste_servo_manual(){
 #if EXIST_CONTROLE_REMOTO
 void Controle_remoto(){
  #if EXIST_Ultrassonico
- if (distancia <= DISTANCIA_PARA){
+ if (distancia_1 <= DISTANCIA_PARA){
   trava_remoto = false;
   }else{trava_remoto = true;}
  #endif
@@ -438,20 +468,11 @@ void Controle_remoto(){
 
 #if EXIST_Ultrassonico
 void Distancia_Sensor(){
-  digitalWrite(TRIG, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG, LOW);
-  tempoEcho = pulseIn(ECHO, HIGH);
-  distancia = ((tempoEcho*velocidadeSom)/2)*100;
-  #if EXIST_COMPARACAO 
-  dados_print_PC += String(distancia);
-  dados_print_PC += " ";
-  #endif
-  #if EXIST_Ultrassonico_FILTRO
-  distancia = Sensor_ultra.filtro_media_movel(distancia);
-  dados_print_PC += String(distancia);
-  dados_print_PC += " ";
-  #endif
+distancia_1 = ultra_1.Calcula_dist();
+
+#if EXIST_Ultrassonico_FILTRO
+distancia_1f = Sensor_ultra_1.filtro_media_movel(distancia_1);
+#endif
 }
 #endif
 /*******************************************************************/
@@ -465,8 +486,18 @@ void Prints(){
   dados_print_PC += " ";
   // dados_print_PC += String(vel);
   // dados_print_PC += "\t";
-  // dados_print_PC += String(dist_p);
-  // dados_print_PC += "\t";
+  
+  #if EXIST_Ultrassonico
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += String(distancia_1);
+  dados_print_PC += "\t";
+  #endif
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += String(distancia_1f);
+  dados_print_PC += "\t";
+  #endif
+  #endif
+  
   #if EXIST_SERVO
   dados_print_PC += String(map(angulo_teorico, 0, 180, -90, 90));
   dados_print_PC += " ";
