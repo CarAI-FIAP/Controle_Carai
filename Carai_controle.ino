@@ -6,7 +6,7 @@
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
-#define EXIST_UNO 0 // por enqunto define se vai utilizar arduino UNO ou mega
+#define EXIST_UNO 1 // por enqunto define se vai utilizar arduino UNO ou mega
 #define EXIST_MEGA (!EXIST_UNO)
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth 
@@ -21,9 +21,9 @@
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_FILTRO 1
+#define EXIST_FILTRO 0
 
-#define EXIST_Ultrassonico 1
+#define EXIST_Ultrassonico 0
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1)
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
@@ -60,7 +60,9 @@ SoftwareSerial HC06(50, 51); //define os pinos TX, RX do bluetooth para arduino 
 #define PWM_MINIMO 0  // Pwm minimo para fazer o motor girar (0 a 225)
 #define VEL_MAX 6 // Velocidade maxima (m/s) que o carro deve atingir 
 
-#define ANGULO_INICIAL 90 // angulo (graus) inicial do servo
+#define ANGULO_INICIAL 0 // angulo (graus) inicial do servo equivalente a zero (deixa as rodas retas)
+#define ANGULO_MAXIMO_ 180 // angulo maximo que o servo deve atingir
+#define ANGULO_MINIMO_ 0 // angulo minimo que o servo deve atingir
 #define SERVO_SINAL_MIN 500 //sinal em microsegundos do angulo minimo do servo
 #define SERVO_SINAL_MAX 2400 //sinal em microsegundos do angulo maximo do servo
 
@@ -74,8 +76,14 @@ SoftwareSerial HC06(50, 51); //define os pinos TX, RX do bluetooth para arduino 
 int switch_case;  // variavel que controla os casos do switch case
 
 int pwm = PWM_MAXIMO; //pwm inicial
+int pwm_min = PWM_MINIMO; //pwm maximo que o carro irá atingir
+int pwm_max = PWM_MAXIMO; //pwm minimo que o carro precisa para andar
+int estado_motor; // indica ppor meio de 0 ou 1 se o motor está ligado ou desligado
 
-int angulo_teorico = ANGULO_INICIAL; // recebe o angulo (via bluetooth) que servo deve atingir
+int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor (real = angulo interno do servo)
+int angulo_zero = 0;
+int angulo_maximo = ANGULO_MAXIMO_; //armazena o angulo real maximo que o servo consegue abrir
+int angulo_minimo = ANGULO_MINIMO_; //armazena o angulo real maximo que o servo consegue abrir
 
 bool trava_remoto = true;
 
@@ -89,17 +97,6 @@ bool trava_menu_2 = true;
 bool trava_menu_3 = true;
 bool trava_menu_4 = true;
 bool trava_menu_defull = true;
-#endif
-
-#if EXIST_SERVO
-int angulo_servo = ANGULO_INICIAL; // angulo inicial do servo
-#endif
-
-
-#if EXIST_MOTOR_DC 
-int pwm_min = PWM_MINIMO; //pwm maximo que o carro irá atingir
-int pwm_max = PWM_MAXIMO; //pwm minimo que o carro precisa para andar
-int estado_motor;
 #endif
 
 #if EXIST_Ultrassonico 
@@ -404,21 +401,31 @@ void Ajuste_servo_manual(){
       dados_print_HC06 += "\t";
       msg_blue = 0;
       switch_case = 0;
+    }else if(msg_blue == 'B'){
+      angulo_minimo = angulo_servo;
+      dados_print_HC06 += "Minimo ";
+      dados_print_HC06 += "\t";
+    }else if(msg_blue == 'A'){
+      angulo_maximo = angulo_servo;
+      dados_print_HC06 += "Maximo ";
+      dados_print_HC06 += "\t";
+    }else if(msg_blue == 'D'){
+      angulo_zero = angulo_servo;
+      dados_print_HC06 += "Zero ";
+      dados_print_HC06 += "\t";
     }else if(msg_blue == '1'){
-      angulo_teorico++;
-      if(angulo_teorico > 180){angulo_teorico = 180;}
+      angulo_servo++;
       msg_blue = 0;      
     }else if(msg_blue == '2'){
-      angulo_teorico--;
-      if(angulo_teorico < 0){angulo_teorico = 0;}        
+      angulo_servo--;      
       msg_blue = 0;         
     } 
   dados_print_HC06 += "angulo do servo = ";
-  dados_print_HC06 += String(map(angulo_teorico, 0, 180, -90, 90));
+  dados_print_HC06 += String(angulo_servo);
   dados_print_HC06 += "\t";
   }
   #if EXIST_SERVO
-  servo.controle_ajuste(angulo_teorico); 
+  servo.controle_ajuste(angulo_servo); 
   #endif
 }
 #endif
@@ -447,12 +454,12 @@ void Controle_remoto(){
        motor_esquerdo.para();
        switch_case = 0;
      }else if(msg_blue == '1'){
-       angulo_teorico++;
-       if(angulo_teorico > 180){angulo_teorico = 180;}
+       angulo_servo++;
+       if(angulo_servo > angulo_maximo){angulo_servo = angulo_maximo;}
        msg_blue = 0;
      }else if(msg_blue == '2'){
-       angulo_teorico--;
-       if(angulo_teorico < 0){angulo_teorico = 0;}
+       angulo_servo--;
+       if(angulo_servo < angulo_minimo){angulo_servo = angulo_minimo;}
        msg_blue = 0;
      }
    }
@@ -460,19 +467,18 @@ void Controle_remoto(){
   motor_direito.para();
   motor_esquerdo.para();
  }
-  servo.controle_ajuste(angulo_teorico); 
+  servo.controle_ajuste(angulo_servo); 
 }
 #endif
 
 /*******************************************************************/
-
+// armazena as variaveis dos sensores ultrassonicos
 #if EXIST_Ultrassonico
 void Distancia_Sensor(){
-distancia_1 = ultra_1.Calcula_dist();
-
-#if EXIST_Ultrassonico_FILTRO
-distancia_1f = Sensor_ultra_1.filtro_media_movel(distancia_1);
-#endif
+  distancia_1 = ultra_1.Calcula_dist();
+  #if EXIST_Ultrassonico_FILTRO
+  distancia_1f = Sensor_ultra_1.filtro_media_movel(distancia_1);
+  #endif
 }
 #endif
 /*******************************************************************/
@@ -488,7 +494,7 @@ void Prints(){
   // dados_print_PC += "\t";
 
   #if EXIST_SERVO
-  dados_print_PC += String(map(angulo_teorico, 0, 180, -90, 90));
+  dados_print_PC += String(angulo_servo - angulo_zero);
   dados_print_PC += " ";
   #endif
   
@@ -522,15 +528,3 @@ void Prints(){
   dados_print_PC = " ";
   dados_print_HC06 = " ";
 }
-
-
-
-
-
-
-
-
-
-
-
-
