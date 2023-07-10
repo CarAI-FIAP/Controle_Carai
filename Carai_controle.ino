@@ -9,7 +9,7 @@
 #define EXIST_UNO 1 // por enqunto define se vai utilizar arduino UNO ou mega
 #define EXIST_MEGA (!EXIST_UNO)
 
-#define EXIST_BLUE 1 // existencia do modulo bluetooth 
+#define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
 #define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
@@ -21,21 +21,22 @@
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_FILTRO 0
+#define EXIST_FILTRO 1
 
-#define EXIST_Ultrassonico 0
+#define EXIST_Ultrassonico 1
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1)
-#define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
+#define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 0)  //define a existencia do print do valor original
 
 
 #define EXIST_DADOS 1
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
+#define EXIST_MEDIDA (EXIST_DADOS && 0)
 
 //-----------------------------------------------------------------------------
 // Definindo pinos do arduino:
-#define PIN_MD1 12 // pino 1 de controle do motor direito
+#define PIN_MD1 12 // pino 1 de controle do motor direito (dominante)
 #define PIN_MD2 11 // pino 2 de controle do motor direito
-#define PIN_ME1 10 // pino 1 de controle do motor esquerdo
+#define PIN_ME1 10 // pino 1 de controle do motor esquerdo (dominante)
 #define PIN_ME2 9  // pino 2 de controle do motor esquerdo
 
 #define PIN_SERVO 8 // pino de controle do servo motor 
@@ -45,7 +46,7 @@
 
 #if EXIST_UNO
 #if EXIST_BLUE
-SoftwareSerial HC06(5, 4); //define os pinos TX, RX do bluetooth para arduino MEGA
+SoftwareSerial HC06(5, 4); //define os pinos TX, RX do bluetooth para arduino UNO
 #endif
 #endif
 #if EXIST_MEGA 
@@ -60,15 +61,19 @@ SoftwareSerial HC06(50, 51); //define os pinos TX, RX do bluetooth para arduino 
 #define PWM_MINIMO 0  // Pwm minimo para fazer o motor girar (0 a 225)
 #define VEL_MAX 6 // Velocidade maxima (m/s) que o carro deve atingir 
 
-#define ANGULO_INICIAL 0 // angulo (graus) inicial do servo equivalente a zero (deixa as rodas retas)
-#define ANGULO_MAXIMO_ 180 // angulo maximo que o servo deve atingir
-#define ANGULO_MINIMO_ 0 // angulo minimo que o servo deve atingir
+// Para conseguir esses valores, faça uma calibração
+// original = 0 
+#define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
+// original = 180 
+#define ANGULO_MAX 180 // angulo real maximo que o servo deve atingir
+// original = 0 
+#define ANGULO_MIN 0 // angulo minimo real que o servo deve atingir
 #define SERVO_SINAL_MIN 500 //sinal em microsegundos do angulo minimo do servo
 #define SERVO_SINAL_MAX 2400 //sinal em microsegundos do angulo maximo do servo
 
-#define INTERVALO_MEDIA_ULTRA 10
-#define NUMERO_FILTROS_ULTRA 1
-#define DISTANCIA_PARA 8 //distancia minima (em cm) para o carro parar
+#define INTERVALO_MEDIA_HCSR04 10 
+#define NUMERO_FILTROS_HCSR04 1
+#define DISTANCIA_PARAR 8 //distancia minima (em cm) para o carro parar
 
 
 //-----------------------------------------------------------------------------
@@ -78,30 +83,26 @@ int switch_case;  // variavel que controla os casos do switch case
 int pwm = PWM_MAXIMO; //pwm inicial
 int pwm_min = PWM_MINIMO; //pwm maximo que o carro irá atingir
 int pwm_max = PWM_MAXIMO; //pwm minimo que o carro precisa para andar
-int estado_motor; // indica ppor meio de 0 ou 1 se o motor está ligado ou desligado
+int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
-int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor (real = angulo interno do servo)
-int angulo_zero = 0;
-int angulo_maximo = ANGULO_MAXIMO_; //armazena o angulo real maximo que o servo consegue abrir
-int angulo_minimo = ANGULO_MINIMO_; //armazena o angulo real maximo que o servo consegue abrir
+int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
+int angulo_zero = ANGULO_INICIAL; // armazena apenas o angulo que irá definir o ponto zero 
+int angulo_maximo = ANGULO_MAX; //armazena o angulo real maximo que o servo consegue abrir
+int angulo_minimo = ANGULO_MIN; //armazena o angulo real maximo que o servo consegue abrir
 
-bool trava_remoto = true;
+bool obstaculo = false; // armazena a indicação de obstaculo no caminho 
 
 String dados_print_HC06 = " ";  //armazena os dados que serão printado no bluetooth
 String dados_print_PC = " ";  //armazena os dados que serão printado no monitor serial
 
 #if EXIST_BLUE
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
-bool trava_menu_1 = true;
-bool trava_menu_2 = true;
-bool trava_menu_3 = true;
-bool trava_menu_4 = true;
-bool trava_menu_defull = true;
 #endif
 
 #if EXIST_Ultrassonico 
 const float velocidadeSom = 0.00034029; //velocidade do som em metros/microsegundo
 float distancia_1, distancia_1f;
+int detec;
 #endif
 
 /*******************************************************************/
@@ -167,8 +168,7 @@ class Contador_tempo {
     return false;
   }
 };
-Contador_tempo ajuste_media_movel(); 
-Contador_tempo parado(); 
+// Contador_tempo ajuste_media_movel(); 
 
 /*******************************************************************/
 #if EXIST_SERVO
@@ -186,7 +186,7 @@ class Servos {
   pinMode(pin_servo_m, OUTPUT); 
   }
 
-  void controle_ajuste(int angulo_servo) {
+  void colocar_angulo(int angulo_servo) {
     float pulseWidth = map(angulo_servo, 0, 180, min_servo, max_servo);  
     digitalWrite(pin_servo_m, HIGH);          
     delayMicroseconds(pulseWidth);        
@@ -225,8 +225,19 @@ class Sensor_ultrassonico {
    dist = ((tempoEcho*velocidadeSom)/2)*100;
    return dist;
  }
+
+ bool Detectar_obstaculo(float distancia){
+  if (distancia < DISTANCIA_PARAR){
+    detec = 1;
+    return true;
+  }else{
+    detec = 0;
+    return false;
+  }
+
+ } 
 };
-Sensor_ultrassonico ultra_1(PIN_ECHO_1, PIN_TRIG_1);
+Sensor_ultrassonico HCSR04_1(PIN_ECHO_1, PIN_TRIG_1);
 #endif
 
 /*******************************************************************/
@@ -253,7 +264,7 @@ class Filtro {
     delete[] sinal;
    }
 
-  float filtro_media_movel(float sinal_) {
+  float Media_movel(float sinal_) {
     float k = 0;
     for (int i = 0; i < numero_filtros; i++) {
       for (int x = intervalo_media_m - 1; x > 0; x--){sinal[i][x] = sinal[i][x - 1];}
@@ -265,22 +276,63 @@ class Filtro {
   }  
 };
 #if EXIST_Ultrassonico_FILTRO
-Filtro Sensor_ultra_1(INTERVALO_MEDIA_ULTRA, NUMERO_FILTROS_ULTRA);
+Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
 #endif
 #endif
 
 /*******************************************************************/
 void setup() {
-
-  Serial.begin(115200);
+  Serial.begin(115200); //inicializa o monitor serial
   
   #if EXIST_BLUE
-  HC06.begin(9600); 
+  HC06.begin(9600); //inicializa o modulo bluetooth HC06
+  #endif
+
+
+  // inicio do cabeçalho do monitor serial
+  #if EXIST_DADOS
+  #if EXIST_MOTOR_DC 
+  dados_print_PC += "Motor(1/0)";
+  dados_print_PC += " ";
+  #endif
+  dados_print_PC += "PWM";
+  dados_print_PC += " ";
+  // dados_print_PC += "velocidade(m/s)";
+  // dados_print_PC += "\t";
+
+  #if EXIST_SERVO
+  dados_print_PC += "Angulo real";
+  dados_print_PC += " ";
+  dados_print_PC += "Angulo relativo";
+  dados_print_PC += " ";
   #endif
   
-  #if EXIST_SERVO 
-  servo.controle_ajuste(ANGULO_INICIAL); 
+  #if EXIST_Ultrassonico
+  dados_print_PC += "Obstaculo(1/0)";
+  dados_print_PC += " ";
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += "HCSR04_1(m)";
+  dados_print_PC += " ";
   #endif
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += "HCSR04_1 filtrado(m)";
+  dados_print_PC += " ";
+  #endif
+  #endif
+  
+
+  #if EXIST_AJUSTE_GRAFICO
+  dados_print_PC += "Ajuste_1";
+  dados_print_PC += " ";
+  dados_print_PC += "Ajuste_2";
+  dados_print_PC += " ";
+  dados_print_PC += "Ajuste_3";
+  dados_print_PC += " ";
+  #endif  
+  Serial.println(dados_print_PC);
+  dados_print_PC = " ";
+  #endif
+  // fim do cabeçalho do monitor serial
   
 }
 
@@ -394,25 +446,25 @@ void Ajuste_pwm_manual(){
 // Ajusta o movimento do servo
 #if EXIST_CALIBRA_SERVO
 void Ajuste_servo_manual(){
+
   if (HC06.available()) {
     msg_blue = HC06.read();
     if(msg_blue == 'C'){
       dados_print_HC06 += "Calibração do servo finalizada ";
-      dados_print_HC06 += "\t";
-      msg_blue = 0;
+      dados_print_HC06 += " ";
       switch_case = 0;
     }else if(msg_blue == 'B'){
       angulo_minimo = angulo_servo;
       dados_print_HC06 += "Minimo ";
-      dados_print_HC06 += "\t";
+      dados_print_HC06 += " ";
     }else if(msg_blue == 'A'){
       angulo_maximo = angulo_servo;
       dados_print_HC06 += "Maximo ";
-      dados_print_HC06 += "\t";
+      dados_print_HC06 += " ";
     }else if(msg_blue == 'D'){
       angulo_zero = angulo_servo;
       dados_print_HC06 += "Zero ";
-      dados_print_HC06 += "\t";
+      dados_print_HC06 += " ";
     }else if(msg_blue == '1'){
       angulo_servo++;
       msg_blue = 0;      
@@ -422,10 +474,10 @@ void Ajuste_servo_manual(){
     } 
   dados_print_HC06 += "angulo do servo = ";
   dados_print_HC06 += String(angulo_servo);
-  dados_print_HC06 += "\t";
+  dados_print_HC06 += " ";
   }
   #if EXIST_SERVO
-  servo.controle_ajuste(angulo_servo); 
+  servo.colocar_angulo(angulo_servo); 
   #endif
 }
 #endif
@@ -434,40 +486,35 @@ void Ajuste_servo_manual(){
 // controle remoto do veiculo
 #if EXIST_CONTROLE_REMOTO
 void Controle_remoto(){
- #if EXIST_Ultrassonico
- if (distancia_1 <= DISTANCIA_PARA){
-  trava_remoto = false;
-  }else{trava_remoto = true;}
- #endif
-
- if(trava_remoto){
-   if (HC06.available()) {
-     msg_blue = HC06.read();
-     if(msg_blue == 'A'){
-       motor_direito.frente(pwm);
-       motor_esquerdo.frente(pwm); 
-     }else if(msg_blue == 'B'){
-       motor_direito.para();
-       motor_esquerdo.para();
-     }else if(msg_blue == 'C'){
-       motor_direito.para();
-       motor_esquerdo.para();
-       switch_case = 0;
-     }else if(msg_blue == '1'){
-       angulo_servo++;
-       if(angulo_servo > angulo_maximo){angulo_servo = angulo_maximo;}
-       msg_blue = 0;
-     }else if(msg_blue == '2'){
-       angulo_servo--;
-       if(angulo_servo < angulo_minimo){angulo_servo = angulo_minimo;}
-       msg_blue = 0;
-     }
-   }
- }else{
+ 
+ if(obstaculo){
   motor_direito.para();
   motor_esquerdo.para();
+ }else{
+  if (HC06.available()) {
+    msg_blue = HC06.read();
+    if(msg_blue == 'A'){
+      motor_direito.frente(pwm);
+      motor_esquerdo.frente(pwm); 
+    }else if(msg_blue == 'B'){
+      motor_direito.para();
+      motor_esquerdo.para();
+    }else if(msg_blue == 'C'){
+      motor_direito.para();
+      motor_esquerdo.para();
+      switch_case = 0;
+    }else if(msg_blue == '1'){
+      angulo_servo++;
+      if(angulo_servo > angulo_maximo){angulo_servo = angulo_maximo;}
+      msg_blue = 0;
+    }else if(msg_blue == '2'){
+      angulo_servo--;
+      if(angulo_servo < angulo_minimo){angulo_servo = angulo_minimo;}
+      msg_blue = 0;
+    }
+  }  
  }
-  servo.controle_ajuste(angulo_servo); 
+  servo.colocar_angulo(angulo_servo); 
 }
 #endif
 
@@ -475,10 +522,12 @@ void Controle_remoto(){
 // armazena as variaveis dos sensores ultrassonicos
 #if EXIST_Ultrassonico
 void Distancia_Sensor(){
-  distancia_1 = ultra_1.Calcula_dist();
+  distancia_1 = HCSR04_1.Calcula_dist();
+  distancia_1f = distancia_1;
   #if EXIST_Ultrassonico_FILTRO
-  distancia_1f = Sensor_ultra_1.filtro_media_movel(distancia_1);
+  distancia_1f = Filtro_HCSR04_1.Media_movel(distancia_1);
   #endif
+  obstaculo = HCSR04_1.Detectar_obstaculo(distancia_1f);
 }
 #endif
 /*******************************************************************/
@@ -494,17 +543,33 @@ void Prints(){
   // dados_print_PC += "\t";
 
   #if EXIST_SERVO
+  dados_print_PC += String(angulo_servo);
+  #if EXIST_MEDIDA 
+  dados_print_PC += "°";
+  #endif
+  dados_print_PC += " ";
   dados_print_PC += String(angulo_servo - angulo_zero);
+  #if EXIST_MEDIDA 
+  dados_print_PC += "°";
+  #endif
   dados_print_PC += " ";
   #endif
   
   #if EXIST_Ultrassonico
+  dados_print_PC += String(detec);
+  dados_print_PC += " ";
   #if EXIST_Ultrassonico_ORIGINAL
   dados_print_PC += String(distancia_1);
+  #if EXIST_MEDIDA 
+  dados_print_PC += " cm";
+  #endif
   dados_print_PC += " ";
   #endif
   #if EXIST_Ultrassonico_FILTRO
   dados_print_PC += String(distancia_1f);
+  #if EXIST_MEDIDA
+  dados_print_PC += " cm";
+  #endif
   dados_print_PC += " ";
   #endif
   #endif
@@ -528,3 +593,14 @@ void Prints(){
   dados_print_PC = " ";
   dados_print_HC06 = " ";
 }
+
+
+
+
+
+//dados_print_PC += String(map(angulo_servo, 0, 180, -90, 90));
+// encoder: https://blogmasterwalkershop.com.br/arduino/como-usar-com-arduino-encoder-rotativo-com-botao
+
+
+
+
