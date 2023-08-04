@@ -6,7 +6,7 @@
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
-#define EXIST_UNO 1 // por enqunto define se vai utilizar arduino UNO ou mega
+#define EXIST_UNO 0 // por enqunto define se vai utilizar arduino UNO ou mega
 #define EXIST_MEGA (!EXIST_UNO)
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
@@ -21,9 +21,9 @@
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_FILTRO 1 // existencia de filtros
+#define EXIST_FILTRO 0 // existencia de filtros
 
-#define EXIST_Ultrassonico 1  // existencia do sensor ultrassonico
+#define EXIST_Ultrassonico 0  // existencia do sensor ultrassonico
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
@@ -56,7 +56,7 @@
 #define PIN_TRIG_2 25 // pino trig do ultrassonico 2
 #define PIN_ECHO_2 26 // pino echo do ultrassonico 2
 #define PIN_TRIG_3 27 // pino trig do ultrassonico 3
-#define PIN_ECHO_4 28 // pino echo do ultrassonico 3
+#define PIN_ECHO_3 28 // pino echo do ultrassonico 3
 #endif // EXIST_MEGA 
 
 
@@ -110,7 +110,10 @@ int angulo_zero = ANGULO_INICIAL; // armazena apenas o angulo que irá definir o
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
 
-bool obstaculo = false; // armazena a indicação de obstaculo no caminho 
+bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
+bool obstaculo_1 = false; // armazena a indicação de obstaculo no caminho do sensor 1
+bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do sensor 2
+bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool trava_tempo_V = true;
 
 double vel_md, vel_me; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
@@ -125,7 +128,7 @@ char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do p
 
 #if EXIST_Ultrassonico 
 const float velocidadeSom = 0.00034029; // velocidade do som em metros/microsegundo
-float distancia_1, distancia_1f;
+float distancia_1, distancia_1f, distancia_2, distancia_2f, distancia_3, distancia_3f;
 int detec;
 #endif // EXIST_Ultrassonico
 
@@ -307,6 +310,10 @@ class Filtro {
 };
 #if EXIST_Ultrassonico_FILTRO
 Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
+#if EXIST_MEGA 
+Filtro Filtro_HCSR04_2(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
+Filtro Filtro_HCSR04_3(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
+#endif // EXIST_MEGA 
 #endif // EXIST_Ultrassonico_FILTRO
 #endif // EXIST_FILTRO
 
@@ -437,8 +444,10 @@ void setup() {
   #if EXIST_ENCODER 
   dados_print_PC += "Velocidade md (m/s)";
   dados_print_PC += " ";
+  #if EXIST_MEGA 
   dados_print_PC += "Velocidade me (m/s)";
   dados_print_PC += " ";
+  #endif // EXIST_MEGA 
   dados_print_PC += "Distancia total percorrida (m/s)";
   dados_print_PC += " ";
   #endif // EXIST_ENCODER
@@ -454,13 +463,31 @@ void setup() {
   dados_print_PC += "Obstaculo(1/0)";
   dados_print_PC += " ";
   #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_1(m)";
+  dados_print_PC += "HCSR04_1(cm)";
   dados_print_PC += " ";
   #endif // EXIST_Ultrassonico_ORIGINAL
   #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_1 filtrado(m)";
+  dados_print_PC += "HCSR04_1 filtrado(cm)";
   dados_print_PC += " ";
   #endif // EXIST_Ultrassonico_FILTRO
+  #if EXIST_MEGA
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += "HCSR04_2(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += "HCSR04_2 filtrado(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += "HCSR04_3(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += "HCSR04_3 filtrado(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #endif // EXIST_MEGA 
   #endif // EXIST_Ultrassonico
   
 
@@ -678,7 +705,33 @@ void Distancia_Sensor(){
   #if EXIST_Ultrassonico_FILTRO
   distancia_1f = Filtro_HCSR04_1.Media_movel(distancia_1);
   #endif // EXIST_Ultrassonico_FILTRO
-  obstaculo = HCSR04_1.Detectar_obstaculo(distancia_1f);
+  obstaculo_1 = HCSR04_1.Detectar_obstaculo(distancia_1f);
+  obstaculo = obstaculo_1;
+  
+  #if EXIST_MEGA 
+  distancia_2 = HCSR04_2.Calcula_dist();
+  distancia_2f = distancia_2;
+  #if EXIST_Ultrassonico_FILTRO
+  distancia_2f = Filtro_HCSR04_2.Media_movel(distancia_2);
+  #endif // EXIST_Ultrassonico_FILTRO
+  obstaculo_2 = HCSR04_2.Detectar_obstaculo(distancia_2f);
+
+  distancia_3 = HCSR04_3.Calcula_dist();
+  distancia_3f = distancia_3;
+  #if EXIST_Ultrassonico_FILTRO
+  distancia_3f = Filtro_HCSR04_3.Media_movel(distancia_3);
+  #endif // EXIST_Ultrassonico_FILTRO
+  obstaculo_3 = HCSR04_3.Detectar_obstaculo(distancia_3f);
+
+  if(obstaculo_1){
+    obstaculo = true;
+  }else if(obstaculo_2){
+    obstaculo = true;
+  }else if(obstaculo_3){
+    obstaculo = true;
+  }else{obstaculo = false;}
+
+  #endif // EXIST_MEGA 
 }
 #endif // EXIST_Ultrassonico
 /*******************************************************************/
@@ -748,6 +801,36 @@ void Prints(){
   #endif // EXIST_MEDIDA
   dados_print_PC += " ";
   #endif // EXIST_Ultrassonico_FILTRO
+  #if EXIST_MEGA
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += String(distancia_2);
+  #if EXIST_MEDIDA 
+  dados_print_PC += "cm";
+  #endif // EXIST_MEDIDA 
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL 
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += String(distancia_2f);
+  #if EXIST_MEDIDA
+  dados_print_PC += "cm";
+  #endif // EXIST_MEDIDA
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += String(distancia_3);
+  #if EXIST_MEDIDA 
+  dados_print_PC += "cm";
+  #endif // EXIST_MEDIDA 
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL 
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += String(distancia_3f);
+  #if EXIST_MEDIDA
+  dados_print_PC += "cm";
+  #endif // EXIST_MEDIDA
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #endif // EXIST_MEGA
   dados_print_PC += "| ";
   #endif // EXIST_Ultrassonico
   
