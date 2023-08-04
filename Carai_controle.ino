@@ -21,9 +21,9 @@
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_FILTRO 1
+#define EXIST_FILTRO 0
 
-#define EXIST_Ultrassonico 1
+#define EXIST_Ultrassonico 0
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1)
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 0)  //define a existencia do print do valor original
 
@@ -38,6 +38,11 @@
 #define PIN_MD2 11 // pino 2 de controle do motor direito
 #define PIN_ME1 10 // pino 1 de controle do motor esquerdo (dominante)
 #define PIN_ME2 9  // pino 2 de controle do motor esquerdo
+
+#define PIN_EN_DA 18 // pino A de controle do enconder dieito
+#define PIN_EN_DB 19 // pino B de controle do enconder dieito
+#define PIN_EN_EA 20 // pino A de controle do enconder esquerdo
+#define PIN_EN_EB 21 // pino B de controle do enconder esquerdo
 
 #define PIN_SERVO 8 // pino de controle do servo motor 
 
@@ -80,27 +85,30 @@ SoftwareSerial HC06(50, 51); //define os pinos TX, RX do bluetooth para arduino 
 // variaveis globais:
 int switch_case;  // variavel que controla os casos do switch case
 
-int pwm = PWM_MAXIMO; //pwm inicial
-int pwm_min = PWM_MINIMO; //pwm maximo que o carro irá atingir
-int pwm_max = PWM_MAXIMO; //pwm minimo que o carro precisa para andar
+int pwm = PWM_MAXIMO; // pwm inicial
+int pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
+int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_INICIAL; // armazena apenas o angulo que irá definir o ponto zero 
-int angulo_maximo = ANGULO_MAX; //armazena o angulo real maximo que o servo consegue abrir
-int angulo_minimo = ANGULO_MIN; //armazena o angulo real maximo que o servo consegue abrir
+int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
+int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
 
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho 
+bool trava_tempo_V = true;
 
-String dados_print_HC06 = " ";  //armazena os dados que serão printado no bluetooth
-String dados_print_PC = " ";  //armazena os dados que serão printado no monitor serial
+double vel_md, vel_me; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
+
+String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
+String dados_print_PC = " ";  // armazena os dados que serão printado no monitor serial
 
 #if EXIST_BLUE
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
 #endif
 
 #if EXIST_Ultrassonico 
-const float velocidadeSom = 0.00034029; //velocidade do som em metros/microsegundo
+const float velocidadeSom = 0.00034029; // velocidade do som em metros/microsegundo
 float distancia_1, distancia_1f;
 int detec;
 #endif
@@ -168,7 +176,7 @@ class Contador_tempo {
     return false;
   }
 };
-// Contador_tempo ajuste_media_movel(); 
+ Contador_tempo um_segundo_enconder(1000); 
 
 /*******************************************************************/
 #if EXIST_SERVO
@@ -196,6 +204,7 @@ class Servos {
 
 };
 Servos servo(PIN_SERVO, SERVO_SINAL_MIN, SERVO_SINAL_MAX );
+
 #endif
 
 /*******************************************************************/
@@ -281,11 +290,102 @@ Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
 #endif
 
 /*******************************************************************/
+// classe para controle dos enconders
+#if EXIST_ENCODER
+class Encoder {
+ public:
+  int encoderPinA;
+  int encoderPinB;
+  volatile long contadorVoltas;
+  volatile int encoderPosAnterior;
+  bool trava_tempo_V;
+  double velocidade_real; 
+  double volta_inicial;
+  double volta_final;
+  unsigned long tempo_milis;
+  unsigned long tempo_inicial;
+  double tempo_passado;
+
+  Encoder(int pinA, int pinB) : encoderPinA(pinA), encoderPinB(pinB), contadorVoltas(0), encoderPosAnterior(0) {}
+
+  void setup() {
+    pinMode(encoderPinA, INPUT_PULLUP);
+    pinMode(encoderPinB, INPUT_PULLUP);
+    trava_tempo_V = true;
+    attachInterrupt(digitalPinToInterrupt(encoderPinA), encoderInterruptHandler, CHANGE);
+    attachInterrupt(digitalPinToInterrupt(encoderPinB), encoderInterruptHandler, CHANGE);
+  }
+
+  double velocidade() {
+    if(trava_tempo_V){
+      tempo_inicial = micros();
+      trava_tempo_V = false;
+      volta_inicial = contadorVoltas / 1440.0;
+      return velocidade_real;
+    }else{
+      tempo_passado = micros() - tempo_inicial;
+      if(tempo_passado >= 500){
+        noInterrupts();
+        trava_tempo_V = true;
+        tempo_passado = tempo_passado / 1000000;
+        volta_final = contadorVoltas / 1440.0;
+        velocidade_real = volta_final - volta_inicial;
+        velocidade_real = velocidade_real / tempo_passado;
+        // Velocidade_real = Velocidade_real * 2 * 3.14 * 2.85;
+        interrupts();
+        return velocidade_real;
+      }else{return velocidade_real;}
+    }
+  }
+  static void encoderInterruptHandler() {
+    if (instance) {
+      instance->encoderInterrupt();
+    }
+  }
+  static Encoder* instance;
+
+ private:
+  void encoderInterrupt() {
+    int encoderA = digitalRead(encoderPinA);
+    int encoderB = digitalRead(encoderPinB);
+    int encoderPos = (encoderA << 1) | encoderB;
+
+    if (encoderPos != encoderPosAnterior) {
+      if ((encoderPosAnterior == 0b00 && encoderPos == 0b01) ||
+          (encoderPosAnterior == 0b01 && encoderPos == 0b11) ||
+          (encoderPosAnterior == 0b11 && encoderPos == 0b10) ||
+          (encoderPosAnterior == 0b10 && encoderPos == 0b00)) {
+        contadorVoltas++;
+      } else if ((encoderPosAnterior == 0b00 && encoderPos == 0b10) ||
+                 (encoderPosAnterior == 0b10 && encoderPos == 0b11) ||
+                 (encoderPosAnterior == 0b11 && encoderPos == 0b01) ||
+                 (encoderPosAnterior == 0b01 && encoderPos == 0b00)) {
+        contadorVoltas--;
+      }
+    }
+
+    encoderPosAnterior = encoderPos;
+  }
+};
+Encoder* Encoder::instance = nullptr;
+
+Encoder encoder_D(PIN_EN_DA, PIN_EN_DB);
+Encoder encoder_E(PIN_EN_EA, PIN_EN_EB);
+#endif
+
+/*******************************************************************/
 void setup() {
-  Serial.begin(115200); //inicializa o monitor serial
+  Serial.begin(115200); // inicializa o monitor serial
   
+  #if EXIST_ENCODER
+  Encoder::instance = &encoder_D; 
+  encoder_D.setup(); // inicializa o encoder direito
+  Encoder::instance = &encoder_E; 
+  encoder_E.setup(); // inicializa o encoder esquerdo
+  #endif
+
   #if EXIST_BLUE
-  HC06.begin(9600); //inicializa o modulo bluetooth HC06
+  HC06.begin(9600); // inicializa o modulo bluetooth HC06
   #endif
 
 
@@ -297,8 +397,10 @@ void setup() {
   #endif
   dados_print_PC += "PWM";
   dados_print_PC += " ";
-  // dados_print_PC += "velocidade(m/s)";
-  // dados_print_PC += "\t";
+  dados_print_PC += "velocidade md (m/s)";
+  dados_print_PC += " ";
+  dados_print_PC += "velocidade me (m/s)";
+  dados_print_PC += " ";
 
   #if EXIST_SERVO
   dados_print_PC += "Angulo real";
@@ -343,6 +445,11 @@ void loop() {
  Distancia_Sensor();
  #endif
     
+  #if EXIST_ENCODER
+  vel_md = encoder_D.velocidade();
+  vel_me = encoder_E.velocidade();
+  #endif
+
   switch (switch_case) {
   case 1:
     //calibração automatica
@@ -424,7 +531,7 @@ void Ajuste_pwm_manual(){
       switch_case = 0;
     }else if(msg_blue == '1'){
       pwm++;
-      if(pwm > 255){pwm = 225;}
+      if(pwm > 255){pwm = 255;}
       msg_blue = 0;      
     }else if(msg_blue == '2'){
       pwm--;     
@@ -531,6 +638,7 @@ void Distancia_Sensor(){
 }
 #endif
 /*******************************************************************/
+
 void Prints(){
   #if EXIST_DADOS
   #if EXIST_MOTOR_DC 
@@ -539,8 +647,10 @@ void Prints(){
   #endif
   dados_print_PC += String(pwm);
   dados_print_PC += " ";
-  // dados_print_PC += String(vel);
-  // dados_print_PC += "\t";
+  dados_print_PC += String(vel_md);
+  dados_print_PC += " ";
+  dados_print_PC += String(vel_me);
+  dados_print_PC += " ";
 
   #if EXIST_SERVO
   dados_print_PC += String(angulo_servo);
@@ -599,7 +709,7 @@ void Prints(){
 
 
 //dados_print_PC += String(map(angulo_servo, 0, 180, -90, 90));
-// encoder: https://blogmasterwalkershop.com.br/arduino/como-usar-com-arduino-encoder-rotativo-com-botao
+
 
 
 
