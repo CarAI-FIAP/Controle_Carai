@@ -13,7 +13,7 @@
 
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
 #define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
-#define EXIST_ENCODER 1 // existencia dos enconders
+#define EXIST_ENCODER 0 // existencia dos enconders
 #define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
 
 #define EXIST_SERVO 1 // existencia do servo motoror
@@ -29,7 +29,7 @@
 
 
 #define EXIST_DADOS 1 // existencia de dados para print
-#define EXIST_MEDIDA (EXIST_DADOS && 1) // existencia de unidade de media para os dados 
+#define EXIST_MEDIDA (EXIST_DADOS && 0) // existencia de unidade de media para os dados 
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
 //-----------------------------------------------------------------------------
@@ -73,8 +73,8 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 
 //-----------------------------------------------------------------------------
 // Definindo constantes:
-#define PWM_MAXIMO 225  // pwm maximo para fazer o motor girar (0 a 225)
-#define PWM_MINIMO 0  // pwm minimo para fazer o motor girar (0 a 225)
+#define PWM_MAXIMO 140  // pwm maximo para fazer o motor girar (0 a 225)
+#define PWM_MINIMO 80  // pwm minimo para fazer o motor girar (0 a 225)
 #define VEL_MAX 6 // relocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.0285 // raio da roda em metros
 #define NUM_PULSO_VOLTA 1440.0 // numero de opulsos necessarios para o enconder contabilizar 1 volta
@@ -121,6 +121,7 @@ double dist_total; // armazenam a distancia total percorrida
 
 String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
 String dados_print_PC = " ";  // armazena os dados que serão printado no monitor serial
+String dados_print_case = "0 ";  // armazena os dados que serão printado no monitor serial
 
 #if EXIST_BLUE
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
@@ -431,6 +432,7 @@ void setup() {
   HC06.begin(9600); // inicializa o modulo bluetooth HC06
   #endif // EXIST_BLUE
 
+  pwm = PWM_MAXIMO;
 
   // inicio do cabeçalho do monitor serial
   #if EXIST_DADOS
@@ -550,7 +552,7 @@ void loop() {
     motor_direito.para();
     motor_esquerdo.para();
     #endif // EXIST_MOTOR_DC 
-    
+    dados_print_case = "0 ";
     #if EXIST_BLUE
     if (HC06.available()) {
       msg_blue = HC06.read();
@@ -558,13 +560,13 @@ void loop() {
       if(msg_blue == '1'){switch_case = 1;HC06.println("Ajuste pwm automatico");}
       
       #if EXIST_CALIBRA_PWM_MANUAL
-      if(msg_blue == '2'){switch_case = 2;HC06.println("Ajuste pwm manual");}
+      if(msg_blue == '2'){switch_case = 2;dados_print_case = "2 "; HC06.println("Ajuste pwm manual");}
       #endif // EXIST_CALIBRA_PWM_MANUAL
       #if EXIST_CALIBRA_SERVO
-      if(msg_blue == '3'){switch_case = 3;HC06.println("Ajuste servo");}
+      if(msg_blue == '3'){switch_case = 3;dados_print_case = "3 ";HC06.println("Ajuste servo");}
       #endif // EXIST_CALIBRA_SERVO
       #if EXIST_CONTROLE_REMOTO
-      if(msg_blue == '4'){switch_case = 4;HC06.println("Controle remoto");}
+      if(msg_blue == '4'){switch_case = 4;dados_print_case = "4 ";HC06.println("Controle remoto");}
       #endif // EXIST_CONTROLE_REMOTO
       msg_blue = 0;       
     }
@@ -682,11 +684,11 @@ void Controle_remoto(){
       motor_esquerdo.para();
       switch_case = 0;
     }else if(msg_blue == '1'){
-      angulo_servo++;
+      angulo_servo = angulo_servo + 5;
       if(angulo_servo > angulo_maximo){angulo_servo = angulo_maximo;}
       msg_blue = 0;
     }else if(msg_blue == '2'){
-      angulo_servo--;
+      angulo_servo = angulo_servo - 5;
       if(angulo_servo < angulo_minimo){angulo_servo = angulo_minimo;}
       msg_blue = 0;
     }
@@ -738,6 +740,9 @@ void Distancia_Sensor(){
 
 void Prints(){
   #if EXIST_DADOS
+  dados_print_PC += dados_print_case;
+  dados_print_PC += " ";
+  dados_print_PC += "| ";
   #if EXIST_MOTOR_DC 
   dados_print_PC += String(estado_motor);
   dados_print_PC += " ";
@@ -853,11 +858,3 @@ void Prints(){
   dados_print_PC = " ";
   dados_print_HC06 = " ";
 }
-
-
-
-
-
-
-
-
