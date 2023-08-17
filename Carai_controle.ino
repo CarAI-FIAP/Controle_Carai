@@ -84,6 +84,7 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 // Para conseguir os valores aseguir, faça uma calibração:
 // original = 0 
 #define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
+#define ANGULO_ZERO 0 // angulo minimo real que o servo deve atingir
 // original = 180 
 #define ANGULO_MAX 180 // angulo real maximo que o servo deve atingir
 // original = 0 
@@ -106,7 +107,7 @@ int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
-int angulo_zero = ANGULO_INICIAL; // armazena apenas o angulo que irá definir o ponto zero 
+int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
 
@@ -351,7 +352,7 @@ class Encoder {
     if(trava_tempo_V){
       tempo_inicial = micros();
       trava_tempo_V = false;
-      volta_inicial = contadorVoltas / 1440.0;
+      volta_inicial = contadorVoltas / 2880.0;
       return velocidade_real;
     }else{
       tempo_passado = micros() - tempo_inicial;
@@ -359,7 +360,7 @@ class Encoder {
         noInterrupts();
         trava_tempo_V = true;
         tempo_passado = tempo_passado / 1000000;
-        volta_final = contadorVoltas / 1440.0;
+        volta_final = contadorVoltas / 2880.0;
         velocidade_real = volta_final - volta_inicial;
         velocidade_real = velocidade_real / tempo_passado;
         velocidade_real = velocidade_real * 2 * 3.141592 * RAIO_RODA;
@@ -444,7 +445,7 @@ class EncoderB {
     if(trava_tempo_B){
       tempo_inicial = micros();
       trava_tempo_B = false;
-      volta_inicial = contadorVoltas / 1440.0;
+      volta_inicial = contadorVoltas / 2880.0;
       return velocidade_real;
     }else{
       tempo_passado = micros() - tempo_inicial;
@@ -452,7 +453,7 @@ class EncoderB {
         noInterrupts();
         trava_tempo_B = true;
         tempo_passado = tempo_passado / 1000000;
-        volta_final = contadorVoltas / 1440.0;
+        volta_final = contadorVoltas / 2880.0;
         velocidade_real = volta_final - volta_inicial;
         velocidade_real = velocidade_real / tempo_passado;
         velocidade_real = velocidade_real * 2 * 3.141592 * RAIO_RODA;
@@ -526,6 +527,8 @@ void setup() {
 
   // inicio do cabeçalho do monitor serial
   #if EXIST_DADOS
+  dados_print_PC += "Case selecionado";
+  dados_print_PC += " ";
   #if EXIST_MOTOR_DC 
   dados_print_PC += "Motor(1/0)";
   dados_print_PC += " ";
