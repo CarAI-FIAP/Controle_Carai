@@ -661,7 +661,7 @@ void loop() {
         msg_blue = 0;       
       }
       #endif // EXIST_BLUE 
-      dado_menu = 0;   
+      dado_menu = "0";   
     break;
   } 
  Prints();
