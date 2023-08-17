@@ -84,7 +84,7 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 // Para conseguir os valores aseguir, faça uma calibração:
 // original = 0 
 #define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
-#define ANGULO_ZERO 0 // angulo minimo real que o servo deve atingir
+#define ANGULO_ZERO 0 // angulo real que sera considerado zero
 // original = 180 
 #define ANGULO_MAX 180 // angulo real maximo que o servo deve atingir
 // original = 0 
@@ -649,9 +649,7 @@ void loop() {
       #if EXIST_BLUE
       if (HC06.available()) {
         msg_blue = HC06.read();
-      
         if(msg_blue == '1'){switch_case = 1;dado_menu = "1";HC06.println("Modo autonomo");}
-      
         #if EXIST_CALIBRA_PWM_MANUAL
         if(msg_blue == '2'){switch_case = 2;dado_menu = "2";HC06.println("Ajuste pwm manual");}
         #endif // EXIST_CALIBRA_PWM_MANUAL
