@@ -11,6 +11,8 @@
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
+#define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
+
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
 #define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
 #define EXIST_ENCODER 1 // existencia dos enconders
@@ -106,6 +108,7 @@ int pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
 int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
+int angulo_visao, angulo_visao_real; // armazena o angulo dado pela visão computacional
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
@@ -124,6 +127,7 @@ double dist_total; // armazenam a distancia total percorrida
 String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
 String dados_print_PC = " ";  // armazena os dados que serão printado no monitor serial
 String dado_menu = "1";
+String dados_visao = " ";
 
 #if EXIST_BLUE
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
@@ -525,85 +529,22 @@ void setup() {
   dado_menu = "0";
   #endif // EXIST_BLUE
 
-  // inicio do cabeçalho do monitor serial
-  #if EXIST_DADOS
-  dados_print_PC += "Case selecionado";
-  dados_print_PC += " ";
-  #if EXIST_MOTOR_DC 
-  dados_print_PC += "Motor(1/0)";
-  dados_print_PC += " ";
-  dados_print_PC += "PWM";
-  dados_print_PC += " ";
-  #endif // EXIST_MOTOR_DC 
-
-  #if EXIST_ENCODER 
-  dados_print_PC += "Velocidade md (m/s)";
-  dados_print_PC += " ";
-  #if EXIST_MEGA 
-  dados_print_PC += "Velocidade me (m/s)";
-  dados_print_PC += " ";
-  #endif // EXIST_MEGA 
-  dados_print_PC += "Distancia total percorrida (m/s)";
-  dados_print_PC += " ";
-  #endif // EXIST_ENCODER
-
-  #if EXIST_SERVO
-  dados_print_PC += "Angulo real";
-  dados_print_PC += " ";
-  dados_print_PC += "Angulo relativo";
-  dados_print_PC += " ";
-  #endif // EXIST_SERVO
-  
-  #if EXIST_Ultrassonico
-  dados_print_PC += "Obstaculo(1/0)";
-  dados_print_PC += " ";
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_1(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_1 filtrado(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #if EXIST_MEGA
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_2(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_2 filtrado(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_3(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_3 filtrado(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #endif // EXIST_MEGA 
-  #endif // EXIST_Ultrassonico
-  
-
-  #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += "Ajuste_1";
-  dados_print_PC += " ";
-  dados_print_PC += "Ajuste_2";
-  dados_print_PC += " ";
-  dados_print_PC += "Ajuste_3";
-  dados_print_PC += " ";
-  #endif  // EXIST_AJUSTE_GRAFICO
-  Serial.println(dados_print_PC);
-  dados_print_PC = " ";
-  #endif // EXIST_DADOS
-  // fim do cabeçalho do monitor serial
-  
+  #if EXIST_MEDIDA
+  Cabecalho();
+  #endif // EXIST_MEDIDA
 }
 
 /*******************************************************************/
 void loop() {
   
+  #if EXIST_VISAO
+  if (Serial.available()){
+    dados_visao = Serial.readStringUntil('\n');
+    sscanf(dados_visao.c_str(), "%d,%d,%d,%d", &angulo_visao, &esquerda, &direita, &offset);
+    angulo_visao_real = angulo_visao + angulo_zero;
+  }
+  #endif // EXIST_VISAO
+
  #if EXIST_Ultrassonico
  Distancia_Sensor();
  #endif // EXIST_Ultrassonico
@@ -618,7 +559,7 @@ void loop() {
 
   switch (switch_case) {
     case 1:
-      //calibração automatica
+      //
       switch_case = 0;
     break;
 
@@ -760,8 +701,8 @@ void Ajuste_servo_manual(){
 void Controle_remoto(){
  
  if(obstaculo){
-  motor_direito.para();
-  motor_esquerdo.para();
+    motor_direito.para();
+    motor_esquerdo.para();
  }else{
   if (HC06.available()) {
     msg_blue = HC06.read();
@@ -802,7 +743,7 @@ void Controle_remoto(){
 #endif // EXIST_CONTROLE_REMOTO
 
 /*******************************************************************/
-// armazena as variaveis dos sensores ultrassonicos
+// controle do ultrassonico
 #if EXIST_Ultrassonico
 void Distancia_Sensor(){
   distancia_1 = HCSR04_1.Calcula_dist();
@@ -839,8 +780,25 @@ void Distancia_Sensor(){
 
 }
 #endif // EXIST_Ultrassonico
-/*******************************************************************/
 
+/*******************************************************************/
+// controle autonomo
+#if EXIST_VISAO
+void Autonomo(){
+  if(obstaculo){
+    motor_direito.para();
+    motor_esquerdo.para();
+  }else{
+    //ajuste_velocidade()
+    motor_direito.frente(pwm);
+    motor_esquerdo.frente(pwm); 
+  }
+  servo.colocar_angulo(angulo_visao_real); 
+}
+#endif // EXIST_VISAO
+
+/*******************************************************************/
+//Print dos dados
 void Prints(){
   #if EXIST_DADOS
   dados_print_PC += dado_menu;
@@ -878,6 +836,14 @@ void Prints(){
   dados_print_PC += "| ";
   #endif // EXIST_ENCODER
 
+  #if EXIST_VISAO
+  dados_print_PC += String(angulo_visao);
+  #if EXIST_MEDIDA 
+  dados_print_PC += "°";
+  #endif // EXIST_MEDIDA
+  dados_print_PC += " ";
+  #endif // EXIST_VISAO
+
   #if EXIST_SERVO
   dados_print_PC += String(angulo_servo);
   #if EXIST_MEDIDA 
@@ -890,8 +856,8 @@ void Prints(){
   #endif // EXIST_MEDIDA
   dados_print_PC += " ";
   dados_print_PC += "| ";
-  #endif // EXIST_SERVO
-  
+  #endif // EXIST_SERVO 
+   
   #if EXIST_Ultrassonico
   dados_print_PC += String(detec);
   dados_print_PC += " ";
@@ -961,7 +927,88 @@ void Prints(){
   dados_print_PC = " ";
   dados_print_HC06 = " ";
 }
+//*************************************************************************************
 
+void Cabecalho(){
+  // inicio do cabeçalho do monitor serial
+  #if EXIST_DADOS
+  dados_print_PC += "Case selecionado";
+  dados_print_PC += " ";
+  #if EXIST_MOTOR_DC 
+  dados_print_PC += "Motor(1/0)";
+  dados_print_PC += " ";
+  dados_print_PC += "PWM";
+  dados_print_PC += " ";
+  #endif // EXIST_MOTOR_DC 
+
+  #if EXIST_ENCODER 
+  dados_print_PC += "Velocidade md (m/s)";
+  dados_print_PC += " ";
+  #if EXIST_MEGA 
+  dados_print_PC += "Velocidade me (m/s)";
+  dados_print_PC += " ";
+  #endif // EXIST_MEGA 
+  dados_print_PC += "Distancia total percorrida (m/s)";
+  dados_print_PC += " ";
+  #endif // EXIST_ENCODER
+
+    #if EXIST_VISAO
+  dados_print_PC += "Angulo da visão";
+  dados_print_PC += " ";
+  #endif // EXIST_VISAO
+
+  #if EXIST_SERVO
+  dados_print_PC += "Angulo real";
+  dados_print_PC += " ";
+  dados_print_PC += "Angulo relativo";
+  dados_print_PC += " ";
+  #endif // EXIST_SERVO
+  
+  #if EXIST_Ultrassonico
+  dados_print_PC += "Obstaculo(1/0)";
+  dados_print_PC += " ";
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += "HCSR04_1(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += "HCSR04_1 filtrado(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #if EXIST_MEGA
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += "HCSR04_2(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += "HCSR04_2 filtrado(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #if EXIST_Ultrassonico_ORIGINAL
+  dados_print_PC += "HCSR04_3(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_ORIGINAL
+  #if EXIST_Ultrassonico_FILTRO
+  dados_print_PC += "HCSR04_3 filtrado(cm)";
+  dados_print_PC += " ";
+  #endif // EXIST_Ultrassonico_FILTRO
+  #endif // EXIST_MEGA 
+  #endif // EXIST_Ultrassonico
+  
+
+  #if EXIST_AJUSTE_GRAFICO
+  dados_print_PC += "Ajuste_1";
+  dados_print_PC += " ";
+  dados_print_PC += "Ajuste_2";
+  dados_print_PC += " ";
+  dados_print_PC += "Ajuste_3";
+  dados_print_PC += " ";
+  #endif  // EXIST_AJUSTE_GRAFICO
+  Serial.println(dados_print_PC);
+  dados_print_PC = " ";
+  #endif // EXIST_DADOS
+  // fim do cabeçalho do monitor serial
+}
 
 
 
