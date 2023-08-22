@@ -1,28 +1,32 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
+
 //-----------------------------------------------------------------------------
-//funfa
 //Definindo existencia: 
 //(1 = Existe,  0 = Não existe). 
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
-#define EXIST_UNO 0 // por enqunto define se vai utilizar arduino UNO ou mega
+#define EXIST_UNO 1 // por enqunto define se vai utilizar arduino UNO ou mega
 #define EXIST_MEGA (!EXIST_UNO)
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
+#define EXIST_FILTRO 1 // existencia de filtros
+
+#define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
+#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
+#define EXIST_VISAO_ORIGINAL (EXIST_VISAO && 1)
+
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
 #define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
-#define EXIST_ENCODER 1 // existencia dos enconders
+#define EXIST_ENCODER 0 // existencia dos enconders
 #define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
 
 #define EXIST_SERVO 1 // existencia do servo motoror
 #define EXIST_CALIBRA_SERVO (EXIST_SERVO && EXIST_BLUE && 1) // existencia da função de calibrar manualmente o servo motor
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
-
-#define EXIST_FILTRO 1 // existencia de filtros
 
 #define EXIST_Ultrassonico 1  // existencia do sensor ultrassonico
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
@@ -85,32 +89,39 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 // Para conseguir os valores aseguir, faça uma calibração:
 // original = 0 
 #define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
-#define ANGULO_ZERO 0 // angulo real que sera considerado zero
+#define ANGULO_ZERO 50 // angulo real que sera considerado zero
 // original = 180 
-#define ANGULO_MAX 180 // angulo real maximo que o servo deve atingir
+#define ANGULO_MAX 102 // angulo real maximo que o servo deve atingir
 // original = 0 
 #define ANGULO_MIN 0 // angulo minimo real que o servo deve atingir
 #define SERVO_SINAL_MIN 500 //sinal em microsegundos do angulo minimo do servo
 #define SERVO_SINAL_MAX 2400 //sinal em microsegundos do angulo maximo do servo
 
-#define INTERVALO_MEDIA_HCSR04 10 
+#define INTERVALO_MEDIA_HCSR04 25
 #define NUMERO_FILTROS_HCSR04 1
 #define DISTANCIA_PARAR 8 //distancia minima (em cm) para o carro parar
 
+#define INTERVALO_MEDIA_VISAO 20
+#define NUMERO_FILTROS_VISAO 2
 
 //-----------------------------------------------------------------------------
 // variaveis globais:
-int switch_case = 1;  // variavel que controla os casos do switch case
+int switch_case = 0;  // variavel que controla os casos do switch case
 
 int pwm = PWM_MAXIMO; // pwm inicial
 int pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
 int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
+
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
+#if EXIST_VISAO
+int angulo_visao, angulo_visao_real, angulo_visao_f; // armazena o angulo dado pela visão computacional
+int esquerda, direita, offset;
+#endif //EXIST_VISAO
 
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool obstaculo_1 = false; // armazena a indicação de obstaculo no caminho do sensor 1
@@ -124,7 +135,8 @@ double dist_total; // armazenam a distancia total percorrida
 
 String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
 String dados_print_PC = " ";  // armazena os dados que serão printado no monitor serial
-String dado_menu = "1";
+String dado_menu = "0";
+String dados_visao = " ";
 
 #if EXIST_BLUE
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
@@ -173,7 +185,7 @@ Motores motor_direito(PIN_MD1, PIN_MD2);
 Motores motor_esquerdo(PIN_ME1, PIN_ME2);
 #endif // EXIST_MOTOR_DC 
 
-/*******************************************************************/
+//-----------------------------------------------------------------------------
 // classe responsavel pela contagem de tempo em millis():
 class Contador_tempo {
   unsigned long intervalo;
@@ -199,9 +211,9 @@ class Contador_tempo {
     return false;
   }
 };
- Contador_tempo um_segundo_enconder(1000); 
+Contador_tempo um_segundo_enconder(1000); 
 
-/*******************************************************************/
+//-----------------------------------------------------------------------------
 #if EXIST_SERVO
 //classe para controle de servos
 class Servos {
@@ -229,7 +241,7 @@ class Servos {
 Servos servo(PIN_SERVO, SERVO_SINAL_MIN, SERVO_SINAL_MAX );
 #endif // EXIST_MOTOR_DC 
 
-/*******************************************************************/
+//-----------------------------------------------------------------------------
 #if EXIST_Ultrassonico
 //classe para controle dos sensores ultrassonicos
 class Sensor_ultrassonico {
@@ -277,7 +289,7 @@ Sensor_ultrassonico HCSR04_3(PIN_ECHO_3, PIN_TRIG_3);
 #endif // EXIST_MEGA 
 #endif // EXIST_Ultrassonico
 
-/*******************************************************************/
+//-----------------------------------------------------------------------------
 // classe responsavel por aplicar os filtros
 #if EXIST_FILTRO
 class Filtro {
@@ -312,6 +324,9 @@ class Filtro {
     return k / intervalo_media_m;
   }  
 };
+#if EXIST_VISAO_FILTRO
+Filtro Filtro_visao(INTERVALO_MEDIA_VISAO, NUMERO_FILTROS_VISAO);
+#endif // EXIST_VISAO_FILTRO
 #if EXIST_Ultrassonico_FILTRO
 Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
 #if EXIST_MEGA 
@@ -321,7 +336,7 @@ Filtro Filtro_HCSR04_3(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
 #endif // EXIST_Ultrassonico_FILTRO
 #endif // EXIST_FILTRO
 
-/*******************************************************************/
+//-----------------------------------------------------------------------------
 // classe para controle dos enconders
 #if EXIST_ENCODER
 class Encoder {
@@ -415,7 +430,8 @@ Encoder encoder_D(PIN_EN_DA, PIN_EN_DB);
 #if EXIST_MEGA 
 // Encoder encoder_E(PIN_EN_EA, PIN_EN_EB);
 #endif // EXIST_MEGA 
-//*******************************************************************/
+
+//-----------------------------------------------------------------------------
 // classe para controle dos enconders
 class EncoderB {
  public:
@@ -509,6 +525,7 @@ EncoderB encoder_E(PIN_EN_EA, PIN_EN_EB);
 
 /*******************************************************************/
 void setup() {
+
   Serial.begin(115200); // inicializa o monitor serial
   
   #if EXIST_ENCODER
@@ -522,105 +539,30 @@ void setup() {
 
   #if EXIST_BLUE
   HC06.begin(9600); // inicializa o modulo bluetooth HC06
-  switch_case = 0;
-  dado_menu = "0";
   #endif // EXIST_BLUE
 
-  // inicio do cabeçalho do monitor serial
-  #if EXIST_DADOS
-  dados_print_PC += "Case selecionado";
-  dados_print_PC += " ";
-  #if EXIST_MOTOR_DC 
-  dados_print_PC += "Motor(1/0)";
-  dados_print_PC += " ";
-  dados_print_PC += "PWM";
-  dados_print_PC += " ";
-  #endif // EXIST_MOTOR_DC 
-
-  #if EXIST_ENCODER 
-  dados_print_PC += "Velocidade md (m/s)";
-  dados_print_PC += " ";
-  #if EXIST_MEGA 
-  dados_print_PC += "Velocidade me (m/s)";
-  dados_print_PC += " ";
-  #endif // EXIST_MEGA 
-  dados_print_PC += "Distancia total percorrida (m/s)";
-  dados_print_PC += " ";
-  #endif // EXIST_ENCODER
-
-  #if EXIST_SERVO
-  dados_print_PC += "Angulo real";
-  dados_print_PC += " ";
-  dados_print_PC += "Angulo relativo";
-  dados_print_PC += " ";
-  #endif // EXIST_SERVO
-  
-  #if EXIST_Ultrassonico
-  dados_print_PC += "Obstaculo(1/0)";
-  dados_print_PC += " ";
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_1(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_1 filtrado(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #if EXIST_MEGA
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_2(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_2 filtrado(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += "HCSR04_3(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += "HCSR04_3 filtrado(cm)";
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #endif // EXIST_MEGA 
-  #endif // EXIST_Ultrassonico
-  
-
-  #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += "Ajuste_1";
-  dados_print_PC += " ";
-  dados_print_PC += "Ajuste_2";
-  dados_print_PC += " ";
-  dados_print_PC += "Ajuste_3";
-  dados_print_PC += " ";
-  #endif  // EXIST_AJUSTE_GRAFICO
-  Serial.println(dados_print_PC);
-  dados_print_PC = " ";
-  #endif // EXIST_DADOS
-  // fim do cabeçalho do monitor serial
-  
 }
 
-/*******************************************************************/
+//-----------------------------------------------------------------------------
 void loop() {
   
- #if EXIST_Ultrassonico
- Distancia_Sensor();
- #endif // EXIST_Ultrassonico
+  #if EXIST_VISAO
+  Visao_computacional();
+  #endif // EXIST_VISAO
+
+  #if EXIST_Ultrassonico
+  Distancia_Sensor();
+  #endif // EXIST_Ultrassonico
     
   #if EXIST_ENCODER
-  vel_md = encoder_D.velocidade();
-  dist_total = encoder_D.dist_percorrida();
-  #if EXIST_MEGA 
-  vel_me = encoder_E.velocidade();
-  #endif // EXIST_MEGA
+  Encoder_call();
   #endif // EXIST_ENCODER
 
   switch (switch_case) {
     case 1:
-      //calibração automatica
-      switch_case = 0;
+    #if EXIST_VISAO
+    Autonomo();
+    #endif //EXIST_VISAO
     break;
 
     case 2:
@@ -646,11 +588,13 @@ void loop() {
       motor_direito.para();
       motor_esquerdo.para();
       #endif // EXIST_MOTOR_DC 
-    
+      dado_menu = "0";
       #if EXIST_BLUE
       if (HC06.available()) {
         msg_blue = HC06.read();
+        #if EXIST_VISAO
         if(msg_blue == '1'){switch_case = 1;dado_menu = "1";HC06.println("Modo autonomo");}
+        #endif //EXIST_VISAO
         #if EXIST_CALIBRA_PWM_MANUAL
         if(msg_blue == '2'){switch_case = 2;dado_menu = "2";HC06.println("Ajuste pwm manual");}
         #endif // EXIST_CALIBRA_PWM_MANUAL
@@ -659,311 +603,15 @@ void loop() {
         #endif // EXIST_CALIBRA_SERVO
         #if EXIST_CONTROLE_REMOTO
         if(msg_blue == '4'){switch_case = 4;dado_menu = "4";HC06.println("Controle remoto");}
-        #endif // EXIST_CONTROLE_REMOTO
+        #endif // EXIST_CONTROLE_REMOTO 
         msg_blue = 0;       
       }
-      #endif // EXIST_BLUE 
-      dado_menu = "0";   
+      #endif // EXIST_BLUE   
     break;
-  } 
- Prints();
-}
-
-/*******************************************************************/
-// definir o pwm minimo e maximo
-#if EXIST_CALIBRA_PWM_MANUAL
-void Ajuste_pwm_manual(){
-  if (HC06.available()) {
-    msg_blue = HC06.read();
-    if(msg_blue == 'B'){
-      #if EXIST_MOTOR_DC 
-      pwm_min = pwm;
-      #endif // EXIST_MOTOR_DC 
-      dados_print_HC06 += "Minimo ";
-      dados_print_HC06 += "\t"; 
-    }else if(msg_blue == 'A'){
-      #if EXIST_MOTOR_DC 
-      pwm_max = pwm;
-      #endif // EXIST_MOTOR_DC 
-      dados_print_HC06 += "Maximo ";
-      dados_print_HC06 += "\t";      
-    }else if(msg_blue == 'C'){
-      dados_print_HC06 += "Calibração do motor finalizada ";
-      dados_print_HC06 += "\t";
-      #if EXIST_MOTOR_DC 
-      motor_direito.para();
-      motor_esquerdo.para();
-      #endif // EXIST_MOTOR_DC 
-      switch_case = 0;
-    }else if(msg_blue == '3'){
-      pwm++;
-      if(pwm > 255){pwm = 255;}
-      msg_blue = 0;      
-    }else if(msg_blue == '4'){
-      pwm--;     
-      if(pwm < 0){pwm = 0;}        
-      msg_blue = 0;         
-    }
-    dados_print_HC06 += "PWM =: ";
-    dados_print_HC06 += String(pwm);
-    dados_print_HC06 += "\t"; 
-    #if EXIST_MOTOR_DC      
-    motor_direito.frente(pwm);
-    motor_esquerdo.frente(pwm);   
-    #endif  // EXIST_MOTOR_DC 
   }
+  Prints();
 }
-#endif // EXIST_CALIBRA_PWM_MANUAL
-
 /*******************************************************************/
-// Ajusta o movimento do servo
-#if EXIST_CALIBRA_SERVO
-void Ajuste_servo_manual(){
-
-  if (HC06.available()) {
-    msg_blue = HC06.read();
-    if(msg_blue == 'C'){
-      dados_print_HC06 += "Calibração do servo finalizada ";
-      dados_print_HC06 += " ";
-      switch_case = 0;
-    }else if(msg_blue == 'B'){
-      angulo_minimo = angulo_servo;
-      dados_print_HC06 += "Minimo ";
-      dados_print_HC06 += " ";
-    }else if(msg_blue == 'A'){
-      angulo_maximo = angulo_servo;
-      dados_print_HC06 += "Maximo ";
-      dados_print_HC06 += " ";
-    }else if(msg_blue == 'D'){
-      angulo_zero = angulo_servo;
-      dados_print_HC06 += "Zero ";
-      dados_print_HC06 += " ";
-    }else if(msg_blue == '1'){
-      angulo_servo++;
-      msg_blue = 0;      
-    }else if(msg_blue == '2'){
-      angulo_servo--;      
-      msg_blue = 0;         
-    } 
-  dados_print_HC06 += "angulo do servo = ";
-  dados_print_HC06 += String(angulo_servo);
-  dados_print_HC06 += " ";
-  }
-  #if EXIST_SERVO
-  servo.colocar_angulo(angulo_servo); 
-  #endif // EXIST_SERVO
-}
-#endif // EXIST_CALIBRA_SERVO
-
-/*******************************************************************/
-// controle remoto do veiculo
-#if EXIST_CONTROLE_REMOTO
-void Controle_remoto(){
- 
- if(obstaculo){
-  motor_direito.para();
-  motor_esquerdo.para();
- }else{
-  if (HC06.available()) {
-    msg_blue = HC06.read();
-    if(msg_blue == 'E'){
-      motor_direito.frente(pwm);
-      motor_esquerdo.frente(pwm); 
-    }else if(msg_blue == 'D'){
-      motor_direito.para();
-      motor_esquerdo.para();
-    }else if(msg_blue == 'F'){
-      motor_direito.tras(pwm);
-      motor_esquerdo.tras(pwm);
-    }else if(msg_blue == 'C'){
-      motor_direito.para();
-      motor_esquerdo.para();
-      switch_case = 0;
-    }else if(msg_blue == '1'){
-      angulo_servo = angulo_servo + 5;
-      if(angulo_servo > angulo_maximo){angulo_servo = angulo_maximo;}
-      msg_blue = 0;
-    }else if(msg_blue == '2'){
-      angulo_servo = angulo_servo - 5;
-      if(angulo_servo < angulo_minimo){angulo_servo = angulo_minimo;}
-      msg_blue = 0;
-    }else if(msg_blue == '3'){
-      pwm++;
-      if(pwm > 255){pwm = 255;}
-      msg_blue = 0;      
-    }else if(msg_blue == '4'){
-      pwm--;     
-      if(pwm < 0){pwm = 0;}        
-      msg_blue = 0;         
-    }
-  }  
- }
-  servo.colocar_angulo(angulo_servo); 
-}
-#endif // EXIST_CONTROLE_REMOTO
-
-/*******************************************************************/
-// armazena as variaveis dos sensores ultrassonicos
-#if EXIST_Ultrassonico
-void Distancia_Sensor(){
-  distancia_1 = HCSR04_1.Calcula_dist();
-  distancia_1f = distancia_1;
-  #if EXIST_Ultrassonico_FILTRO
-  distancia_1f = Filtro_HCSR04_1.Media_movel(distancia_1);
-  #endif // EXIST_Ultrassonico_FILTRO
-  obstaculo_1 = HCSR04_1.Detectar_obstaculo(distancia_1f);
-  obstaculo = obstaculo_1;
-  
-
-  distancia_2 = HCSR04_2.Calcula_dist();
-  distancia_2f = distancia_2;
-  #if EXIST_Ultrassonico_FILTRO
-  distancia_2f = Filtro_HCSR04_2.Media_movel(distancia_2);
-  #endif // EXIST_Ultrassonico_FILTRO
-  obstaculo_2 = HCSR04_2.Detectar_obstaculo(distancia_2f);
-
-  distancia_3 = HCSR04_3.Calcula_dist();
-  distancia_3f = distancia_3;
-  #if EXIST_Ultrassonico_FILTRO
-  distancia_3f = Filtro_HCSR04_3.Media_movel(distancia_3);
-  #endif // EXIST_Ultrassonico_FILTRO
-  obstaculo_3 = HCSR04_3.Detectar_obstaculo(distancia_3f);
-
-  if(obstaculo_1){
-    obstaculo = true;
-  }else if(obstaculo_2){
-    obstaculo = true;
-  }else if(obstaculo_3){
-    obstaculo = true;
-  }else{obstaculo = false;}
-
-
-}
-#endif // EXIST_Ultrassonico
-/*******************************************************************/
-
-void Prints(){
-  #if EXIST_DADOS
-  dados_print_PC += dado_menu;
-  dados_print_PC += " ";
-  dados_print_PC += "| ";
-  #if EXIST_MOTOR_DC 
-  dados_print_PC += String(estado_motor);
-  dados_print_PC += " ";
-  dados_print_PC += String(pwm);
-  dados_print_PC += " ";
-  dados_print_PC += "| ";
-  #endif // EXIST_MOTOR_DC
-
-  #if EXIST_ENCODER
-  dados_print_PC += String(vel_md);
-  dados_print_PC += " ";
-  #if EXIST_MEDIDA 
-  dados_print_PC += "m/s";
-  dados_print_PC += " ";
-  #endif // EXIST_MEDIDA 
-  #if EXIST_MEGA 
-  dados_print_PC += String(vel_me);
-  dados_print_PC += " ";
-  #if EXIST_MEDIDA 
-  dados_print_PC += "m/s";
-  dados_print_PC += " ";
-  #endif // EXIST_MEDIDA 
-  #endif // EXIST_MEGA
-  dados_print_PC += String(dist_total);
-  dados_print_PC += " ";
-  #if EXIST_MEDIDA 
-  dados_print_PC += "m";
-  dados_print_PC += " ";
-  #endif // EXIST_MEDIDA 
-  dados_print_PC += "| ";
-  #endif // EXIST_ENCODER
-
-  #if EXIST_SERVO
-  dados_print_PC += String(angulo_servo);
-  #if EXIST_MEDIDA 
-  dados_print_PC += "°";
-  #endif // EXIST_MEDIDA
-  dados_print_PC += " ";
-  dados_print_PC += String(angulo_servo - angulo_zero);
-  #if EXIST_MEDIDA 
-  dados_print_PC += "°";
-  #endif // EXIST_MEDIDA
-  dados_print_PC += " ";
-  dados_print_PC += "| ";
-  #endif // EXIST_SERVO
-  
-  #if EXIST_Ultrassonico
-  dados_print_PC += String(detec);
-  dados_print_PC += " ";
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += String(distancia_1);
-  #if EXIST_MEDIDA 
-  dados_print_PC += "cm";
-  #endif // EXIST_MEDIDA 
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL 
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += String(distancia_1f);
-  #if EXIST_MEDIDA
-  dados_print_PC += "cm";
-  #endif // EXIST_MEDIDA
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #if EXIST_MEGA
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += String(distancia_2);
-  #if EXIST_MEDIDA 
-  dados_print_PC += "cm";
-  #endif // EXIST_MEDIDA 
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL 
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += String(distancia_2f);
-  #if EXIST_MEDIDA
-  dados_print_PC += "cm";
-  #endif // EXIST_MEDIDA
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #if EXIST_Ultrassonico_ORIGINAL
-  dados_print_PC += String(distancia_3);
-  #if EXIST_MEDIDA 
-  dados_print_PC += "cm";
-  #endif // EXIST_MEDIDA 
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_ORIGINAL 
-  #if EXIST_Ultrassonico_FILTRO
-  dados_print_PC += String(distancia_3f);
-  #if EXIST_MEDIDA
-  dados_print_PC += "cm";
-  #endif // EXIST_MEDIDA
-  dados_print_PC += " ";
-  #endif // EXIST_Ultrassonico_FILTRO
-  #endif // EXIST_MEGA
-  dados_print_PC += "| ";
-  #endif // EXIST_Ultrassonico
-  
-
-  #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += String(50);
-  dados_print_PC += "\t";
-  dados_print_PC += String(0);
-  dados_print_PC += "\t";
-  dados_print_PC += String(-50);
-  dados_print_PC += "\t";
-  #endif // EXIST_AJUSTE_GRAFICO
-  Serial.println(dados_print_PC);
-  #endif // EXIST_DADOS
-
-  #if EXIST_BLUE
-  if(dados_print_HC06 != " "){HC06.println(dados_print_HC06);}
-  #endif // EXIST_BLUE
-  
-  dados_print_PC = " ";
-  dados_print_HC06 = " ";
-}
-
-
 
 
 
