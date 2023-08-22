@@ -7,14 +7,14 @@
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
-#define EXIST_UNO 1 // por enqunto define se vai utilizar arduino UNO ou mega
+#define EXIST_UNO 0 // por enqunto define se vai utilizar arduino UNO ou mega
 #define EXIST_MEGA (!EXIST_UNO)
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
 #define EXIST_FILTRO 1 // existencia de filtros
 
-#define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
+#define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
 #define EXIST_VISAO_ORIGINAL (EXIST_VISAO && 1)
 
