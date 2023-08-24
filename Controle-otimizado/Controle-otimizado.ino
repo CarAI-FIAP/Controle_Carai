@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
-//---------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------
 //Definindo existencia: 
 //(1 = Existe,  0 = Não existe). 
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
@@ -12,9 +12,9 @@
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
-#define EXIST_FILTRO 0 // existencia de filtros
+#define EXIST_FILTRO 1 // existencia de filtros
 
-#define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
+#define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
 #define EXIST_VISAO_ORIGINAL (EXIST_VISAO && 1)
 
@@ -23,12 +23,16 @@
 #define EXIST_ENCODER 0 // existencia dos enconders
 #define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
 
+#define EXIST_MPU6050 0 //define a existencia do MPU6050
+#define EXIST_GYROZ (EXIST_MPU6050 && 1) //define a existencia de printar os valores do giroscopio
+#define EXIST_GYROZ_FILTRO (EXIST_GYROZ && EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
+
 #define EXIST_SERVO 1 // existencia do servo motoror
 #define EXIST_CALIBRA_SERVO (EXIST_SERVO && EXIST_BLUE && 1) // existencia da função de calibrar manualmente o servo motor
 
 #define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
 
-#define EXIST_Ultrassonico 1  // existencia do sensor ultrassonico
+#define EXIST_Ultrassonico 0  // existencia do sensor ultrassonico
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
@@ -91,7 +95,7 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 #define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
 #define ANGULO_ZERO 50 // angulo real que sera considerado zero
 // original = 180 
-#define ANGULO_MAX 102 // angulo real maximo que o servo deve atingir
+#define ANGULO_MAX 100 // angulo real maximo que o servo deve atingir
 // original = 0 
 #define ANGULO_MIN 0 // angulo minimo real que o servo deve atingir
 #define SERVO_SINAL_MIN 500 //sinal em microsegundos do angulo minimo do servo
@@ -101,8 +105,11 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 #define NUMERO_FILTROS_HCSR04 1
 #define DISTANCIA_PARAR 8 //distancia minima (em cm) para o carro parar
 
-#define INTERVALO_MEDIA_VISAO 20
-#define NUMERO_FILTROS_VISAO 2
+#define INTERVALO_MEDIA_VISAO 15
+#define NUMERO_FILTROS_VISAO 1
+
+#define MEDIA_PARA_GIRO 3000 //media para zerar o angulo do giroscopio
+#define MEDIA_OFFSET 25
 
 //-----------------------------------------------------------------------------
 // variaveis globais:
@@ -127,16 +134,19 @@ bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sen
 bool obstaculo_1 = false; // armazena a indicação de obstaculo no caminho do sensor 1
 bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do sensor 2
 bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
-bool trava_tempo_V = true;
-bool trava_tempo_B = true;
+bool trava_gyro = false;  // trava para offset do gyroscopio
+bool trava_chao = true; // trava para offset do gyroscopio
+// bool trava_tempo_V = true;
+// bool trava_tempo_B = true;
+
 
 double vel_md, vel_me; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
 double dist_total; // armazenam a distancia total percorrida
 
 String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
 String dados_print_PC = " ";  // armazena os dados que serão printado no monitor serial
-String dado_menu = "0";
-String dados_visao = " ";
+String dado_menu = "0"; // armazena o estado do switch case
+String dados_visao = " "; // armazena os dado oriondos da visão computacional
 
 #if EXIST_BLUE
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
@@ -148,7 +158,71 @@ float distancia_1, distancia_1f, distancia_2, distancia_2f, distancia_3, distanc
 int detec;
 #endif // EXIST_Ultrassonico
 
+#if EXIST_GYROZ
+double gyroX; //armazenam os angulos brutos do giroscopio no eixo x
+double gyroXoffset; //armazena o valor excedente de referencia do giroscopio no eixo x
+double angleX, angulo_x; //armazenam os angulos do giroscopio depois de tratado no eixo x
+int cont_offsetX, angulo_x_set, angulo_x_setoff;
+int cont_offsetZ, angulo_z_set, angulo_z_setoff;
+double gyroZ; //armazenam os angulos brutos do giroscopio no eixo Z
+double gyroZoffset; //armazena o valor excedente de referencia do giroscopio no eixo Z
+double angleZ, angulo_z; //armazenam os angulos do giroscopio depois de tratado no eixo Z
+float interval; //armazena a variação do angulo em um determinado tempo 
+long preInterval; // tempo de variação do angulo do giroscopio 
+#endif
+
+
+
 /*******************************************************************/
+#if EXIST_MPU6050
+//biblioteca do MPU6050:
+const uint8_t IMUAddress = 0x68;
+const uint8_t I2C_TIMEOUT = 1000;
+uint8_t i2cWrite(uint8_t registerAddress, uint8_t data, bool sendStop){
+  return i2cWrite(registerAddress, &data, 1, sendStop);
+}
+uint8_t i2cWrite(uint8_t registerAddress, uint8_t *data, uint8_t length, bool sendStop){
+  Wire.beginTransmission(IMUAddress);
+  Wire.write(registerAddress);
+  Wire.write(data, length);
+  uint8_t rcode = Wire.endTransmission(sendStop);
+  if(rcode){
+    Serial.print(F("i2cWrite Failed: "));
+    Serial.println(rcode);
+  }
+  return rcode;
+}
+uint8_t i2cRead(uint8_t registerAddress, uint8_t *data, uint8_t nbytes){
+  uint32_t timeOutTimer;
+  Wire.beginTransmission(IMUAddress);
+  Wire.write(registerAddress);
+  uint8_t rcode = Wire.endTransmission(false);
+  if(rcode){
+    Serial.print(F("i2cRead Failed: "));
+    Serial.println(rcode);
+    return rcode;
+  }
+  Wire.requestFrom(IMUAddress, nbytes, (uint8_t)true);
+  for(uint8_t i = 0; i< nbytes; i++){
+    if(Wire.available())
+      data[i]=Wire.read();
+    else{
+      timeOutTimer = micros();
+      while(((micros() - timeOutTimer) < I2C_TIMEOUT) && !Wire.available());
+      if(Wire.available())
+        data[i] = Wire.read();
+      else{
+        Serial.println(F("i2cRead timeout"));
+        return 5;
+      }
+    }
+  }
+  return 0;
+}
+uint8_t i2c_data[14]; //configuração do mpu6050
+#endif //EXIST_MPU6050
+
+//-------------------------------------------------------------------------------------
 #if EXIST_MOTOR_DC 
 // classe responsavel pelo setup e orientação dos motores:
 class Motores {
@@ -541,6 +615,21 @@ void setup() {
   HC06.begin(9600); // inicializa o modulo bluetooth HC06
   #endif // EXIST_BLUE
 
+  #if EXIST_MPU6050
+  Wire.begin();
+  Wire.setClock(4000000UL);
+  i2c_data[0] = 7;
+  for(int i = 1; i<4; i++){i2c_data[i] = 0x00;}
+  while(i2cWrite(0x19, i2c_data, 4, false));
+  while(i2cWrite(0x6B, 0x01, true));
+  while(i2cRead(0x75, i2c_data, 1));
+  if(i2c_data[0]!= 0x68){
+    Serial.print("Erro. Placa desconhecida!\n");
+    while(1){Serial.println("Erro. Conecte a MPU6050 no barramento I2C.\n");}
+  }
+  delay(100);
+  #endif 
+
 }
 
 //-----------------------------------------------------------------------------
@@ -557,6 +646,10 @@ void loop() {
   #if EXIST_ENCODER
   Encoder_call();
   #endif // EXIST_ENCODER
+  
+  #if EXIST_GYROZ
+  if(trava_gyro){Giroscopio();}
+  #endif
 
   switch (switch_case) {
     case 1:

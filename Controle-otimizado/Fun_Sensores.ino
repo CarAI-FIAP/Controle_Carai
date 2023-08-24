@@ -45,3 +45,61 @@ void Encoder_call(){
   #endif // EXIST_MEGA
 }
 #endif // EXIST_ENCODER
+
+//*********************************************************************************
+
+void Call_ref_chao(){
+  #if EXIST_GYROZ
+  double zgx = 0;
+  double x = 0;
+  double zgz = 0;
+  double z = 0;
+  preInterval = millis();
+  for(int i = 0; i < MEDIA_PARA_GIRO; i++){
+    if(i % 1000 == 0){
+      Serial.println("...");
+    }
+    while(i2cRead(0x3B, i2c_data, 14));
+      zgx = (int16_t) ((i2c_data[8] << 8) | i2c_data[9]);
+      x += ((float)zgx) / 131.0;
+      gyroXoffset = x/MEDIA_PARA_GIRO;
+      zgz = (int16_t) ((i2c_data[10] << 8) | i2c_data[11]);
+      z += ((float)zgz) / 131.0;
+      gyroZoffset = z/MEDIA_PARA_GIRO;
+  }
+  Serial.println("Concluido");
+  trava_gyro = true;
+  #endif
+}
+
+//************************************************************************************
+#if EXIST_GYROZ
+void Giroscopio(){
+  while(i2cRead(0x3B, i2c_data, 14));
+    gyroX = (int16_t) ((i2c_data[8] << 8) | i2c_data[9]);
+    gyroX= gyroX/131.0;
+    gyroZ = (int16_t) ((i2c_data[10] << 8) | i2c_data[11]);
+    gyroZ= gyroZ/131.0;
+  
+  gyroX -= gyroXoffset;
+  interval = (millis() - preInterval) * 0.001;
+  angleX = (angleX + gyroX * interval);
+  angulo_x = angleX;
+
+  if(cont_offsetX < MEDIA_OFFSET){
+   angulo_x_set = angulo_x_set + angulo_x;
+   cont_offsetX = cont_offsetX + 1;
+  }else{angulo_x_setoff = angulo_x_set/MEDIA_OFFSET;}
+
+  gyroZ -= gyroZoffset;
+  angleZ = (angleZ + gyroZ * interval);
+  angulo_z = angleZ;
+
+  if(cont_offsetZ < MEDIA_OFFSET){
+   angulo_z_set = angulo_z_set + angulo_z;
+   cont_offsetZ = cont_offsetZ + 1;
+  }else{angulo_z_setoff = angulo_z_set/MEDIA_OFFSET;}
+  
+  preInterval = millis();
+}
+#endif

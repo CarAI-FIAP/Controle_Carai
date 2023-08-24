@@ -12,6 +12,14 @@ void Prints(){
   dados_print_PC += "| ";
   #endif // EXIST_MOTOR_DC
 
+  #if EXIST_GYROZ
+  dados_print_PC += String(angleX - angulo_x_setoff);
+  dados_print_PC += " ";
+  dados_print_PC += String(angleZ - angulo_z_setoff);
+  dados_print_PC += " ";
+  dados_print_PC += "| ";
+  #endif
+
   #if EXIST_ENCODER
   dados_print_PC += String(vel_md);
   dados_print_PC += " ";
