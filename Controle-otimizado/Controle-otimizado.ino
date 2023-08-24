@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
-//-----------------------------------------------------------------------------
+//---------------------------------------------------------------------------------------
 //Definindo existencia: 
 //(1 = Existe,  0 = Não existe). 
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
