@@ -12,7 +12,7 @@
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
-#define EXIST_FILTRO 1 // existencia de filtros
+#define EXIST_FILTRO 0 // existencia de filtros
 
 #define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
