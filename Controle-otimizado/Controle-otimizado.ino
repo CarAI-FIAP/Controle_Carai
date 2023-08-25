@@ -12,15 +12,15 @@
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
-#define EXIST_FILTRO 1 // existencia de filtros
+#define EXIST_FILTRO 0 // existencia de filtros
 
-#define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
+#define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
 #define EXIST_VISAO_ORIGINAL (EXIST_VISAO && 1)
 
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
 #define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
-#define EXIST_ENCODER 0 // existencia dos enconders
+#define EXIST_ENCODER 1 // existencia dos enconders
 #define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
@@ -85,8 +85,8 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 #define PWM_MAXIMO 140  // pwm maximo para fazer o motor girar (0 a 225)
 #define PWM_MINIMO 80  // pwm minimo para fazer o motor girar (0 a 225)
 #define VEL_MAX 6 // relocidade maxima (m/s) que o carro deve atingir 
-#define RAIO_RODA 0.0285 // raio da roda em metros
-#define NUM_PULSO_VOLTA 1440.0 // numero de opulsos necessarios para o enconder contabilizar 1 volta
+#define RAIO_RODA 0.175 // raio da roda em metros
+#define NUM_PULSO_VOLTA 2880.0 // numero de opulsos necessarios para o enconder contabilizar 1 volta
 // 1440.0 = 1 volta | 2880.0 = 2 voltas
 
 
@@ -376,25 +376,31 @@ class Filtro {
     intervalo_media_m = intervalo_media;
     numero_filtros = numero;
     sinal = new float*[numero_filtros];
+    noInterrupts();
     for (int i = 0; i < numero_filtros; i++) {
       sinal[i] = new float[intervalo_media_m];
       memset(sinal[i], 0, sizeof(float) * intervalo_media_m);
     }
+    interrupts();
   }
 
   ~Filtro() {
+    noInterrupts();
     for (int i = 0; i < numero_filtros; i++){delete[] sinal[i];}
+    interrupts();
     delete[] sinal;
    }
 
   float Media_movel(float sinal_) {
     float k = 0;
+    noInterrupts();
     for (int i = 0; i < numero_filtros; i++) {
       for (int x = intervalo_media_m - 1; x > 0; x--){sinal[i][x] = sinal[i][x - 1];}
       sinal[i][0] = sinal_;
       k = 0;
       for (int x = 0; x < intervalo_media_m; x++){k += sinal[i][x];}
     }
+    interrupts();
     return k / intervalo_media_m;
   }  
 };
@@ -442,7 +448,7 @@ class Encoder {
     if(trava_tempo_V){
       tempo_inicial = micros();
       trava_tempo_V = false;
-      volta_inicial = contadorVoltas / 2880.0;
+      volta_inicial = contadorVoltas / NUM_PULSO_VOLTA;
       return velocidade_real;
     }else{
       tempo_passado = micros() - tempo_inicial;
@@ -450,7 +456,7 @@ class Encoder {
         noInterrupts();
         trava_tempo_V = true;
         tempo_passado = tempo_passado / 1000000;
-        volta_final = contadorVoltas / 2880.0;
+        volta_final = contadorVoltas / NUM_PULSO_VOLTA;
         velocidade_real = volta_final - volta_inicial;
         velocidade_real = velocidade_real / tempo_passado;
         velocidade_real = velocidade_real * 2 * 3.141592 * RAIO_RODA;
@@ -461,10 +467,7 @@ class Encoder {
   }
 
   double dist_percorrida(){
-    dist_per = contadorVoltas / 1440.0;
-    #if EXIST_MOTOR_DC
-    dist_per = contadorVoltas / 2880.0;
-    #endif
+    dist_per = contadorVoltas / NUM_PULSO_VOLTA;
     dist_per = dist_per * 2 * 3.141592 * RAIO_RODA;
     return dist_per;
   }
@@ -697,7 +700,7 @@ void loop() {
         #if EXIST_CONTROLE_REMOTO
         if(msg_blue == '4'){switch_case = 4;dado_menu = "4";HC06.println("Controle remoto");}
         #endif // EXIST_CONTROLE_REMOTO 
-        msg_blue = 0;       
+        msg_blue = 0;     
       }
       #endif // EXIST_BLUE   
     break;

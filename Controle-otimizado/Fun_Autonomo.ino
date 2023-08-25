@@ -1,6 +1,8 @@
 #if EXIST_VISAO
 void Autonomo(){
 
+  //Dividir em switch case **********>>>>>
+
   #if EXIST_MPU6050
   if(trava_chao){
     Call_ref_chao();
@@ -27,8 +29,8 @@ void Autonomo(){
   }else{
     //ajuste_velocidade()
     #if EXIST_MOTOR_DC 
-    motor_direito.frente(pwm);
-    motor_esquerdo.frente(pwm); 
+    motor_direito.frente(pwm_max);
+    motor_esquerdo.frente(pwm_max); 
     #endif // EXIST_MOTOR_DC 
   }
   if(angulo_visao_real < angulo_minimo){
@@ -36,6 +38,8 @@ void Autonomo(){
   }else if(angulo_visao_real > angulo_maximo){
     angulo_visao_real = angulo_maximo;
   }
+
+    
   servo.colocar_angulo(angulo_visao_real); 
 }
 #endif // EXIST_VISAO

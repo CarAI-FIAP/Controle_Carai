@@ -8,8 +8,6 @@ void  Visao_computacional(){
     angulo_visao_f = Filtro_visao.Media_movel(angulo_visao);
     angulo_visao_real = angulo_visao_f + angulo_zero;
     #endif //EXIST_VISAO_FILTRO
-
-    
   }
 }
 #endif //EXIST_VISAO

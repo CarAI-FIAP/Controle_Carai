@@ -55,6 +55,7 @@ void Call_ref_chao(){
   double zgz = 0;
   double z = 0;
   preInterval = millis();
+  noInterrupts();
   for(int i = 0; i < MEDIA_PARA_GIRO; i++){
     if(i % 1000 == 0){
       Serial.println("...");
@@ -67,6 +68,7 @@ void Call_ref_chao(){
       z += ((float)zgz) / 131.0;
       gyroZoffset = z/MEDIA_PARA_GIRO;
   }
+  interrupts();
   Serial.println("Concluido");
   trava_gyro = true;
   #endif
