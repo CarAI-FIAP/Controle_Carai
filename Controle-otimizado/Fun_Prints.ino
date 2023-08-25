@@ -1,4 +1,6 @@
 //Print dos dados
+bool teste = infra_direito.Detectar_linha();
+
 void Prints(){
   #if EXIST_DADOS
   dados_print_PC += dado_menu;
@@ -74,6 +76,12 @@ void Prints(){
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_SERVO 
+
+  #if EXIST_INFRA
+  dados_print_PC += String(dado_infra);
+  dados_print_PC += " ";
+  dados_print_PC += "| ";
+  #endif // EXIST_INFRA
    
   #if EXIST_Ultrassonico
   dados_print_PC += String(detec);

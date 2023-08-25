@@ -23,7 +23,7 @@
 #define EXIST_ENCODER 1 // existencia dos enconders
 #define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
 
-#define EXIST_MPU6050 0 //define a existencia do MPU6050
+#define EXIST_MPU6050 1 //define a existencia do MPU6050
 #define EXIST_GYROZ (EXIST_MPU6050 && 1) //define a existencia de printar os valores do giroscopio
 #define EXIST_GYROZ_FILTRO (EXIST_GYROZ && EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
@@ -36,6 +36,7 @@
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
+#define EXIST_INFRA 1 // existencia do sensor infravermelho seguidr de linha
 
 #define EXIST_DADOS 1 // existencia de dados para print
 #define EXIST_MEDIDA (EXIST_DADOS && 0) // existencia de unidade de media para os dados 
@@ -52,8 +53,8 @@
 #define PIN_EN_DA 18 // pino A de controle do enconder dieito para arduino MEGA
 #define PIN_EN_DB 19 // pino B de controle do enconder dieito para arduino MEGA
 #if EXIST_MEGA 
-#define PIN_EN_EA 20 // pino A de controle do enconder esquerdo para arduino MEGA
-#define PIN_EN_EB 21 // pino B de controle do enconder esquerdo para arduino MEGA
+#define PIN_EN_EA 2 // pino A de controle do enconder esquerdo para arduino MEGA
+#define PIN_EN_EB 3 // pino B de controle do enconder esquerdo para arduino MEGA
 #endif // EXIST_MEGA 
 
 
@@ -62,11 +63,14 @@
 #define PIN_TRIG_1 7 // pino trig do ultrassonico 1
 #define PIN_ECHO_1 6 // pino echo do ultrassonico 1
 #if EXIST_MEGA 
-#define PIN_TRIG_2 24 // pino trig do ultrassonico 2
-#define PIN_ECHO_2 26 // pino echo do ultrassonico 2
-#define PIN_TRIG_3 30 // pino trig do ultrassonico 3
-#define PIN_ECHO_3 28 // pino echo do ultrassonico 3
+#define PIN_TRIG_2 26 // pino trig do ultrassonico 2
+#define PIN_ECHO_2 25 // pino echo do ultrassonico 2
+#define PIN_TRIG_3 28 // pino trig do ultrassonico 3
+#define PIN_ECHO_3 27 // pino echo do ultrassonico 3
 #endif // EXIST_MEGA 
+
+#define PIN_INFRA_D 46
+#define PIN_INFRA_E 30
 
 
 #if EXIST_UNO
@@ -89,8 +93,6 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 #define NUM_PULSO_VOLTA 2880.0 // numero de opulsos necessarios para o enconder contabilizar 1 volta
 // 1440.0 = 1 volta | 2880.0 = 2 voltas
 
-
-// Para conseguir os valores aseguir, faça uma calibração:
 // original = 0 
 #define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
 #define ANGULO_ZERO 50 // angulo real que sera considerado zero
@@ -125,6 +127,7 @@ int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
+
 #if EXIST_VISAO
 int angulo_visao, angulo_visao_real, angulo_visao_f; // armazena o angulo dado pela visão computacional
 int esquerda, direita, offset;
@@ -139,6 +142,7 @@ bool trava_chao = true; // trava para offset do gyroscopio
 // bool trava_tempo_V = true;
 // bool trava_tempo_B = true;
 
+int dado_infra;
 
 double vel_md, vel_me; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
 double dist_total; // armazenam a distancia total percorrida
@@ -362,6 +366,32 @@ Sensor_ultrassonico HCSR04_2(PIN_ECHO_2, PIN_TRIG_2);
 Sensor_ultrassonico HCSR04_3(PIN_ECHO_3, PIN_TRIG_3);
 #endif // EXIST_MEGA 
 #endif // EXIST_Ultrassonico
+
+//-----------------------------------------------------------------------------
+#if EXIST_INFRA
+// classe responsavel pelo setup e orientação dos motores:
+class Infravermelho {
+  int pin_infra;
+
+ public:
+  Infravermelho(int pininfra){
+    pin_infra = pininfra;
+    pinMode(pin_infra, INPUT);    
+  }
+
+  bool Detectar_linha() {
+    if (digitalRead(pin_infra) == HIGH){
+      dado_infra = 0;
+      return false;
+    }else{
+      dado_infra = 1;
+      return true;
+    }
+  }
+};
+Infravermelho infra_direito(PIN_INFRA_D);
+Infravermelho infra_esquerdo(PIN_INFRA_E);
+#endif // EXIST_INFRA
 
 //-----------------------------------------------------------------------------
 // classe responsavel por aplicar os filtros

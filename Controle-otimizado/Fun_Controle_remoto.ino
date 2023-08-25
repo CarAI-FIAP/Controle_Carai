@@ -1,6 +1,13 @@
  // controle remoto do veiculo
 #if EXIST_CONTROLE_REMOTO
 void Controle_remoto(){
+
+  #if EXIST_MPU6050
+  if(trava_chao){
+    Call_ref_chao();
+    trava_chao = false;
+  }
+  #endif
  
  if(obstaculo){
     motor_direito.para();
