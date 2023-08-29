@@ -1,5 +1,4 @@
 //Print dos dados
-bool teste = infra_direito.Detectar_linha();
 
 void Prints(){
   #if EXIST_DADOS
@@ -9,28 +8,20 @@ void Prints(){
   #if EXIST_MOTOR_DC 
   dados_print_PC += String(estado_motor);
   dados_print_PC += " ";
-  dados_print_PC += String(pwm);
+  dados_print_PC += String(pwm_d);
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_MOTOR_DC
 
-  #if EXIST_GYROZ
-  dados_print_PC += String(angleX - angulo_x_setoff);
-  dados_print_PC += " ";
-  dados_print_PC += String(angleZ - angulo_z_setoff);
-  dados_print_PC += " ";
-  dados_print_PC += "| ";
-  #endif
-
   #if EXIST_ENCODER
-  dados_print_PC += String(vel_md);
+  dados_print_PC += String(vel_md_f);
   dados_print_PC += " ";
   #if EXIST_MEDIDA 
   dados_print_PC += "m/s";
   dados_print_PC += " ";
   #endif // EXIST_MEDIDA 
   #if EXIST_MEGA 
-  dados_print_PC += String(vel_me);
+  dados_print_PC += String(vel_me_f);
   dados_print_PC += " ";
   #if EXIST_MEDIDA 
   dados_print_PC += "m/s";
@@ -76,6 +67,14 @@ void Prints(){
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_SERVO 
+
+  #if EXIST_GYROZ
+  dados_print_PC += String(angleX - angulo_x_setoff);
+  dados_print_PC += " ";
+  dados_print_PC += String(angleZ - angulo_z_setoff);
+  dados_print_PC += " ";
+  dados_print_PC += "| ";
+  #endif
 
   #if EXIST_INFRA
   dados_print_PC += String(dado_infra);
@@ -135,7 +134,7 @@ void Prints(){
   
 
   #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += String(50);
+  dados_print_PC += String(250);
   dados_print_PC += "\t";
   dados_print_PC += String(0);
   dados_print_PC += "\t";

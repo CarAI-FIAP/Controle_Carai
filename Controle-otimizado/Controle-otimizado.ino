@@ -1,7 +1,7 @@
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
-//-----------------------------------------------------------------------------
+//***********************************************************************************
 //Definindo existencia: 
 //(1 = Existe,  0 = Não existe). 
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
@@ -12,7 +12,7 @@
 
 #define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
 
-#define EXIST_FILTRO 0 // existencia de filtros
+#define EXIST_FILTRO 1 // existencia de filtros
 
 #define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
@@ -20,10 +20,11 @@
 
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
 #define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
-#define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_CALIBRA_PWM (EXIST_ENCODER && 1) // existencia da função de calibrar o pwm minimo e maximo automatico
 
-#define EXIST_MPU6050 1 //define a existencia do MPU6050
+#define EXIST_ENCODER 0 // existencia dos enconders
+#define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
+
+#define EXIST_MPU6050 0 //define a existencia do MPU6050
 #define EXIST_GYROZ (EXIST_MPU6050 && 1) //define a existencia de printar os valores do giroscopio
 #define EXIST_GYROZ_FILTRO (EXIST_GYROZ && EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
@@ -36,7 +37,7 @@
 #define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
 #define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
 
-#define EXIST_INFRA 1 // existencia do sensor infravermelho seguidr de linha
+#define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
 
 #define EXIST_DADOS 1 // existencia de dados para print
 #define EXIST_MEDIDA (EXIST_DADOS && 0) // existencia de unidade de media para os dados 
@@ -88,24 +89,29 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 // Definindo constantes:
 #define PWM_MAXIMO 140  // pwm maximo para fazer o motor girar (0 a 225)
 #define PWM_MINIMO 80  // pwm minimo para fazer o motor girar (0 a 225)
-#define VEL_MAX 6 // relocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.8 // relocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175 // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0 // numero de opulsos necessarios para o enconder contabilizar 1 volta
 // 1440.0 = 1 volta | 2880.0 = 2 voltas
+#define TIME_FRENAGEM_FOFO 0.7 //Time de frenagem em millis segundos
+#define TIME_CONTROL_VEL_D 0.7 
+#define INTERVALO_MEDIA_ENCODER 10
+#define NUMERO_FILTROS_ENCODER 1
 
 // original = 0 
-#define ANGULO_INICIAL 0 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
-#define ANGULO_ZERO 50 // angulo real que sera considerado zero
+#define ANGULO_INICIAL 30 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
+#define ANGULO_ZERO 70 // angulo real que sera considerado zero (50)
 // original = 180 
-#define ANGULO_MAX 100 // angulo real maximo que o servo deve atingir
+#define ANGULO_MAX 120 // angulo real maximo que o servo deve atingir (100)
 // original = 0 
-#define ANGULO_MIN 0 // angulo minimo real que o servo deve atingir
+#define ANGULO_MIN 30 // angulo minimo real que o servo deve atingir (0)
 #define SERVO_SINAL_MIN 500 //sinal em microsegundos do angulo minimo do servo
 #define SERVO_SINAL_MAX 2400 //sinal em microsegundos do angulo maximo do servo
 
 #define INTERVALO_MEDIA_HCSR04 25
 #define NUMERO_FILTROS_HCSR04 1
-#define DISTANCIA_PARAR 8 //distancia minima (em cm) para o carro parar
+#define DISTANCIA_PARAR 30 //distancia minima (em cm) para o carro parar
+#define DISTANCIA_DETECTA 100 //distancia minima (em cm) para detectar a presença 
 
 #define INTERVALO_MEDIA_VISAO 15
 #define NUMERO_FILTROS_VISAO 1
@@ -116,8 +122,12 @@ SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino
 //-----------------------------------------------------------------------------
 // variaveis globais:
 int switch_case = 0;  // variavel que controla os casos do switch case
+int auto_estado = 0;
+int remoto_estado = 0;
 
-int pwm = PWM_MAXIMO; // pwm inicial
+int pwm = PWM_MAXIMO;
+int pwm_d = 0; // pwm inicial
+int pwm_e = PWM_MAXIMO; // pwm inicial
 int pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
 int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
@@ -144,7 +154,7 @@ bool trava_chao = true; // trava para offset do gyroscopio
 
 int dado_infra;
 
-double vel_md, vel_me; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
+double vel_md, vel_md_f, vel_me, vel_me_f; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
 double dist_total; // armazenam a distancia total percorrida
 
 String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
@@ -176,8 +186,7 @@ long preInterval; // tempo de variação do angulo do giroscopio
 #endif
 
 
-
-/*******************************************************************/
+//*******************************************************************
 #if EXIST_MPU6050
 //biblioteca do MPU6050:
 const uint8_t IMUAddress = 0x68;
@@ -232,31 +241,36 @@ uint8_t i2c_data[14]; //configuração do mpu6050
 class Motores {
   int pin_m1;
   int pin_m2;
+  unsigned long intervalo;
+  unsigned long ultima_atualizacao;
+  bool trava_chamado;
 
  public:
   Motores(int pin_1, int pin_2){
-  pin_m1 = pin_1;
-  pin_m2 = pin_2;
-  pinMode(pin_m1, OUTPUT);  
-  pinMode(pin_m2, OUTPUT);  
+    pin_m1 = pin_1;
+    pin_m2 = pin_2;
+    pinMode(pin_m1, OUTPUT);  
+    pinMode(pin_m2, OUTPUT);
+    intervalo = 100;
+    trava_chamado = true;
   }
 
   void frente(int pwm) {
-  analogWrite(pin_m1,pwm);
-  digitalWrite(pin_m2,LOW);
-  estado_motor = 1;
+    analogWrite(pin_m1,pwm);
+    digitalWrite(pin_m2,LOW);
+    estado_motor = 1;
   }
 
   void tras(int pwm) {
-  digitalWrite(pin_m1,LOW);
-  analogWrite(pin_m2,pwm);
-  estado_motor = -1;
+    digitalWrite(pin_m1,LOW);
+    analogWrite(pin_m2,pwm);
+    estado_motor = -1;
   }
 
   void para() {
-  digitalWrite(pin_m1,LOW);
-  digitalWrite(pin_m2,LOW);
-  estado_motor = 0;
+    digitalWrite(pin_m1,LOW);
+    digitalWrite(pin_m2,LOW);
+    estado_motor = 0;
   }
 };
 Motores motor_direito(PIN_MD1, PIN_MD2);
@@ -289,7 +303,9 @@ class Contador_tempo {
     return false;
   }
 };
-Contador_tempo um_segundo_enconder(1000); 
+Contador_tempo time_frenagem_fofo_d(TIME_FRENAGEM_FOFO);
+Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
+Contador_tempo time_contrl_vel_d(TIME_CONTROL_VEL_D);
 
 //-----------------------------------------------------------------------------
 #if EXIST_SERVO
@@ -350,7 +366,7 @@ class Sensor_ultrassonico {
  }
 
  bool Detectar_obstaculo(float distancia){
-  if (distancia < DISTANCIA_PARAR){
+  if (distancia < DISTANCIA_DETECTA){
     detec = 1;
     return true;
   }else{
@@ -434,6 +450,7 @@ class Filtro {
     return k / intervalo_media_m;
   }  
 };
+Filtro Filtro_VEL_D(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
 #if EXIST_VISAO_FILTRO
 Filtro Filtro_visao(INTERVALO_MEDIA_VISAO, NUMERO_FILTROS_VISAO);
 #endif // EXIST_VISAO_FILTRO

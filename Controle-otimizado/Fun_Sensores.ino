@@ -39,9 +39,19 @@ void Distancia_Sensor(){
 #if EXIST_ENCODER
 void Encoder_call(){
   vel_md = encoder_D.velocidade();
+  vel_md_f = vel_md;
+  #if EXIST_ENCODER_FILTRO
+  vel_md_f = Filtro_VEL_D.Media_movel(vel_md);
+  #endif // EXIST_ENCODER_FILTRO
+
   dist_total = encoder_D.dist_percorrida();
+
   #if EXIST_MEGA 
   vel_me = encoder_E.velocidade();
+  vel_me_f = vel_me;
+  #if EXIST_ENCODER_FILTRO
+  // vel_me_f = Filtro_VEL_E.Media_movel(vel_me);
+  #endif // EXIST_ENCODER_FILTRO
   #endif // EXIST_MEGA
 }
 #endif // EXIST_ENCODER
