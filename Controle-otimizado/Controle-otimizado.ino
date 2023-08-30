@@ -7,11 +7,6 @@
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
-#define EXIST_UNO 0 // por enqunto define se vai utilizar arduino UNO ou mega
-#define EXIST_MEGA (!EXIST_UNO)
-
-#define EXIST_BLUE 1 // existencia do modulo bluetooth HC06
-
 #define EXIST_FILTRO 1 // existencia de filtros
 
 #define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
@@ -19,23 +14,18 @@
 #define EXIST_VISAO_ORIGINAL (EXIST_VISAO && 1)
 
 #define EXIST_MOTOR_DC 1 // existencia dos motores dc
-#define EXIST_CALIBRA_PWM_MANUAL (EXIST_BLUE && EXIST_MOTOR_DC && 1) // existencia da função de calibrar o pwm minimo e maximo manualmente 
 
-#define EXIST_ENCODER 0 // existencia dos enconders
+#define EXIST_ENCODER 1 // existencia dos enconders
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
-#define EXIST_GYROZ (EXIST_MPU6050 && 1) //define a existencia de printar os valores do giroscopio
-#define EXIST_GYROZ_FILTRO (EXIST_GYROZ && EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
+#define EXIST_GYRO_PRINT (EXIST_MPU6050 && 1) 
+#define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
 #define EXIST_SERVO 1 // existencia do servo motoror
-#define EXIST_CALIBRA_SERVO (EXIST_SERVO && EXIST_BLUE && 1) // existencia da função de calibrar manualmente o servo motor
 
-#define EXIST_CONTROLE_REMOTO (EXIST_BLUE && EXIST_MOTOR_DC && EXIST_SERVO && 1) // existencia de controlar o carro remotamente
-
-#define EXIST_Ultrassonico 0  // existencia do sensor ultrassonico
-#define EXIST_Ultrassonico_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
-#define EXIST_Ultrassonico_ORIGINAL (EXIST_Ultrassonico && 1)  //define a existencia do print do valor original
+#define EXIST_ULTRA 0  // existencia do sensor ultrassonico
+#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
 
@@ -44,83 +34,83 @@
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
 //-----------------------------------------------------------------------------
-// Definindo pinos do arduino:
-#define PIN_MD1 12 // pino 1 de controle do motor direito (dominante)
-#define PIN_MD2 11 // pino 2 de controle do motor direito
-#define PIN_ME1 10 // pino 1 de controle do motor esquerdo (dominante)
-#define PIN_ME2 9  // pino 2 de controle do motor esquerdo
+// DEFININDO PINOS DO ARDUINO:
 
+// Pinos do motor:
+#define PIN_MD1 12    // pino 1 de controle do motor direito (dominante)
+#define PIN_MD2 11    // pino 2 de controle do motor direito
+#define PIN_ME1 10     // pino 1 de controle do motor esquerdo (dominante)
+#define PIN_ME2 9       // pino 2 de controle do motor esquerdo
 
-#define PIN_EN_DA 18 // pino A de controle do enconder dieito para arduino MEGA
-#define PIN_EN_DB 19 // pino B de controle do enconder dieito para arduino MEGA
-#if EXIST_MEGA 
-#define PIN_EN_EA 2 // pino A de controle do enconder esquerdo para arduino MEGA
-#define PIN_EN_EB 3 // pino B de controle do enconder esquerdo para arduino MEGA
-#endif // EXIST_MEGA 
+// Pinos dos encoders:
+#define PIN_EN_DA 18     // pino A de controle do enconder dieito para arduino MEGA
+#define PIN_EN_DB 19     // pino B de controle do enconder dieito para arduino MEGA
+#define PIN_EN_EA 2     // pino A de controle do enconder esquerdo para arduino MEGA
+#define PIN_EN_EB 3     // pino B de controle do enconder esquerdo para arduino MEGA
 
+// Pino do servo:
+#define PIN_SERVO 8     // pino de controle do servo motor 
 
-#define PIN_SERVO 8 // pino de controle do servo motor 
+// Pinos dos sensores ultrassonicos
+#define PIN_TRIG_1 7     // pino trig do ultrassonico 1
+#define PIN_ECHO_1 6     // pino echo do ultrassonico 1
+#define PIN_TRIG_2 26     // pino trig do ultrassonico 2
+#define PIN_ECHO_2 25     // pino echo do ultrassonico 2
+#define PIN_TRIG_3 28     // pino trig do ultrassonico 3
+#define PIN_ECHO_3 27     // pino echo do ultrassonico 3
 
-#define PIN_TRIG_1 7 // pino trig do ultrassonico 1
-#define PIN_ECHO_1 6 // pino echo do ultrassonico 1
-#if EXIST_MEGA 
-#define PIN_TRIG_2 26 // pino trig do ultrassonico 2
-#define PIN_ECHO_2 25 // pino echo do ultrassonico 2
-#define PIN_TRIG_3 28 // pino trig do ultrassonico 3
-#define PIN_ECHO_3 27 // pino echo do ultrassonico 3
-#endif // EXIST_MEGA 
+// Pinos dos sensores infravermelhos
+#define PIN_INFRA_D 46     // pinos do sensor infra direito
+#define PIN_INFRA_E 30     // pinos do sensor infra esquerdo
 
-#define PIN_INFRA_D 46
-#define PIN_INFRA_E 30
-
-
-#if EXIST_UNO
-#if EXIST_BLUE
-SoftwareSerial HC06(5, 4); // define os pinos TX, RX do bluetooth para arduino UNO
-#endif // EXIST_BLUE
-#endif // EXIST_UNO
-#if EXIST_MEGA 
-#if EXIST_BLUE
-SoftwareSerial HC06(50, 51); // define os pinos TX, RX do bluetooth para arduino MEGA
-#endif // EXIST_BLUE
-#endif // EXIST_MEGA
+// Pinos do modulo bluetooth
+SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 
 //-----------------------------------------------------------------------------
-// Definindo constantes:
-#define PWM_MAXIMO 140  // pwm maximo para fazer o motor girar (0 a 225)
-#define PWM_MINIMO 80  // pwm minimo para fazer o motor girar (0 a 225)
-#define VEL_MAX 0.8 // relocidade maxima (m/s) que o carro deve atingir 
-#define RAIO_RODA 0.175 // raio da roda em metros
-#define NUM_PULSO_VOLTA 2880.0 // numero de opulsos necessarios para o enconder contabilizar 1 volta
-// 1440.0 = 1 volta | 2880.0 = 2 voltas
-#define TIME_FRENAGEM_FOFO 0.7 //Time de frenagem em millis segundos
-#define TIME_CONTROL_VEL_D 0.7 
-#define INTERVALO_MEDIA_ENCODER 10
-#define NUMERO_FILTROS_ENCODER 1
+// DEFININDO VALORES CONSTANTES:
 
-// original = 0 
-#define ANGULO_INICIAL 30 // angulo real inicial do servo para deixar as rodas retas (real = angulo interno do servo)
-#define ANGULO_ZERO 70 // angulo real que sera considerado zero (50)
-// original = 180 
-#define ANGULO_MAX 120 // angulo real maximo que o servo deve atingir (100)
-// original = 0 
-#define ANGULO_MIN 30 // angulo minimo real que o servo deve atingir (0)
-#define SERVO_SINAL_MIN 500 //sinal em microsegundos do angulo minimo do servo
-#define SERVO_SINAL_MAX 2400 //sinal em microsegundos do angulo maximo do servo
+//Sobre os motores:
+#define PWM_MAXIMO 140     // pwm maximo para fazer o motor girar (0 a 225)
+#define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
-#define INTERVALO_MEDIA_HCSR04 25
-#define NUMERO_FILTROS_HCSR04 1
-#define DISTANCIA_PARAR 30 //distancia minima (em cm) para o carro parar
-#define DISTANCIA_DETECTA 100 //distancia minima (em cm) para detectar a presença 
+//Sobre os encoders:
+#define VEL_MAX 0.8     // velocidade maxima (m/s) que o carro deve atingir 
+#define RAIO_RODA 0.175     // raio da roda em metros
+#define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
+#define TIME_FRENAGEM_FOFO 0.7     // intervalo de tempo para alterar o pwm durante a frenagem
+#define TIME_CONTROL_VEL 0.7     // intervalo de tempo para alterar o pwm durante o andar do carro
+//-----filtro do encoder-----:
+#define INTERVALO_MEDIA_ENCODER 10     // numero de valores para efetuar a media
+#define NUMERO_FILTROS_ENCODER 1     // numero de filtros que será aplicado
 
-#define INTERVALO_MEDIA_VISAO 15
-#define NUMERO_FILTROS_VISAO 1
+//Sobre os servos:
+#define ANGULO_INICIAL 30     // angulo real inicial do servo para quando ligar o carro
+#define ANGULO_ZERO 70     // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
+#define ANGULO_MAX 120      // angulo real maximo que o servo pode atingir 
+#define ANGULO_MIN 30     // angulo minimo real que o servo pode atingir (0)
+#define SERVO_SINAL_MIN 500      // sinal em microsegundos do angulo minimo do servo (configuração do servo)
+#define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
-#define MEDIA_PARA_GIRO 3000 //media para zerar o angulo do giroscopio
-#define MEDIA_OFFSET 25
+//Sobre os sensores ultrassonicos:
+#define DISTANCIA_PARAR 30     // distancia minima (em cm) para o carro parar
+#define DISTANCIA_DETECTA 100     // distancia minima (em cm) para detectar a presença de um corpo
+//-----filtro do sensor ultrassonico-----:
+#define INTERVALO_MEDIA_HCSR04 25     // numero de valores para efetuar a media
+#define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado
+
+//Sobre a visão computacional:
+//-----filtro da visão-----:
+#define INTERVALO_MEDIA_VISAO 15     // numero de valores para efetuar a media
+#define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
+
+//Sobre o MPU6050:
+#define MEDIA_PARA_GIRO 3000      // media para tarar os angulos do giroscopio
+#define MEDIA_OFFSET 25      // media para impedir o almento constante do angulo parado
+//-----filtro dO mp6050-----:
 
 //-----------------------------------------------------------------------------
-// variaveis globais:
+// VARIAVEIS GLOBAIS
+
 int switch_case = 0;  // variavel que controla os casos do switch case
 int auto_estado = 0;
 int remoto_estado = 0;
@@ -162,17 +152,17 @@ String dados_print_PC = " ";  // armazena os dados que serão printado no monito
 String dado_menu = "0"; // armazena o estado do switch case
 String dados_visao = " "; // armazena os dado oriondos da visão computacional
 
-#if EXIST_BLUE
-char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
-#endif // EXIST_BLUE
 
-#if EXIST_Ultrassonico 
+char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
+
+
+#if EXIST_ULTRA
 const float velocidadeSom = 0.00034029; // velocidade do som em metros/microsegundo
 float distancia_1, distancia_1f, distancia_2, distancia_2f, distancia_3, distancia_3f;
 int detec;
-#endif // EXIST_Ultrassonico
+#endif // EXIST_ULTRA
 
-#if EXIST_GYROZ
+#if EXIST_MPU6050
 double gyroX; //armazenam os angulos brutos do giroscopio no eixo x
 double gyroXoffset; //armazena o valor excedente de referencia do giroscopio no eixo x
 double angleX, angulo_x; //armazenam os angulos do giroscopio depois de tratado no eixo x
@@ -183,10 +173,12 @@ double gyroZoffset; //armazena o valor excedente de referencia do giroscopio no 
 double angleZ, angulo_z; //armazenam os angulos do giroscopio depois de tratado no eixo Z
 float interval; //armazena a variação do angulo em um determinado tempo 
 long preInterval; // tempo de variação do angulo do giroscopio 
-#endif
+#endif //EXIST_MPU6050
 
 
 //*******************************************************************
+//BIBLIOTECAS E CLASSES:
+
 #if EXIST_MPU6050
 //biblioteca do MPU6050:
 const uint8_t IMUAddress = 0x68;
@@ -236,8 +228,7 @@ uint8_t i2c_data[14]; //configuração do mpu6050
 #endif //EXIST_MPU6050
 
 //-------------------------------------------------------------------------------------
-#if EXIST_MOTOR_DC 
-// classe responsavel pelo setup e orientação dos motores:
+// Classe responsavel pelo setup e orientação dos motores:
 class Motores {
   int pin_m1;
   int pin_m2;
@@ -275,10 +266,9 @@ class Motores {
 };
 Motores motor_direito(PIN_MD1, PIN_MD2);
 Motores motor_esquerdo(PIN_ME1, PIN_ME2);
-#endif // EXIST_MOTOR_DC 
 
 //-----------------------------------------------------------------------------
-// classe responsavel pela contagem de tempo em millis():
+// Classe responsavel pela contagem de tempo em millis():
 class Contador_tempo {
   unsigned long intervalo;
   unsigned long ultima_atualizacao;
@@ -305,11 +295,10 @@ class Contador_tempo {
 };
 Contador_tempo time_frenagem_fofo_d(TIME_FRENAGEM_FOFO);
 Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
-Contador_tempo time_contrl_vel_d(TIME_CONTROL_VEL_D);
+Contador_tempo time_contrl_vel_d(TIME_CONTROL_VEL);
 
 //-----------------------------------------------------------------------------
-#if EXIST_SERVO
-//classe para controle de servos
+//Classe para controle de servos
 class Servos {
   int pin_servo_m;
   int min_servo;
@@ -333,11 +322,10 @@ class Servos {
 
 };
 Servos servo(PIN_SERVO, SERVO_SINAL_MIN, SERVO_SINAL_MAX );
-#endif // EXIST_MOTOR_DC 
 
 //-----------------------------------------------------------------------------
-#if EXIST_Ultrassonico
-//classe para controle dos sensores ultrassonicos
+#if EXIST_ULTRA
+//Classe para controle dos sensores ultrassonicos
 class Sensor_ultrassonico {
   int pin_echo;
   int pin_trig;
@@ -377,15 +365,13 @@ class Sensor_ultrassonico {
  } 
 };
 Sensor_ultrassonico HCSR04_1(PIN_ECHO_1, PIN_TRIG_1);
-#if EXIST_MEGA 
 Sensor_ultrassonico HCSR04_2(PIN_ECHO_2, PIN_TRIG_2);
 Sensor_ultrassonico HCSR04_3(PIN_ECHO_3, PIN_TRIG_3);
-#endif // EXIST_MEGA 
-#endif // EXIST_Ultrassonico
+#endif // EXIST_ULTRA
 
 //-----------------------------------------------------------------------------
 #if EXIST_INFRA
-// classe responsavel pelo setup e orientação dos motores:
+// Classe responsavel pelo setup e orientação dos motores:
 class Infravermelho {
   int pin_infra;
 
@@ -410,7 +396,7 @@ Infravermelho infra_esquerdo(PIN_INFRA_E);
 #endif // EXIST_INFRA
 
 //-----------------------------------------------------------------------------
-// classe responsavel por aplicar os filtros
+// Classe responsavel por aplicar os filtros
 #if EXIST_FILTRO
 class Filtro {
   float** sinal;
@@ -450,17 +436,20 @@ class Filtro {
     return k / intervalo_media_m;
   }  
 };
+#if EXIST_ENCODER_FILTRO
 Filtro Filtro_VEL_D(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
+Filtro Filtro_VEL_E(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
+#endif // EXIST_ENCODER_FILTRO
+
 #if EXIST_VISAO_FILTRO
 Filtro Filtro_visao(INTERVALO_MEDIA_VISAO, NUMERO_FILTROS_VISAO);
 #endif // EXIST_VISAO_FILTRO
-#if EXIST_Ultrassonico_FILTRO
+
+#if EXIST_ULTRA_FILTRO
 Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
-#if EXIST_MEGA 
 Filtro Filtro_HCSR04_2(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
 Filtro Filtro_HCSR04_3(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
-#endif // EXIST_MEGA 
-#endif // EXIST_Ultrassonico_FILTRO
+#endif // EXIST_ULTRA_FILTRO
 #endif // EXIST_FILTRO
 
 //-----------------------------------------------------------------------------
@@ -551,9 +540,6 @@ class Encoder {
 };
 Encoder* Encoder::instance = nullptr;
 Encoder encoder_D(PIN_EN_DA, PIN_EN_DB);
-#if EXIST_MEGA 
-// Encoder encoder_E(PIN_EN_EA, PIN_EN_EB);
-#endif // EXIST_MEGA 
 
 //-----------------------------------------------------------------------------
 // classe para controle dos enconders
@@ -654,16 +640,12 @@ void setup() {
   
   #if EXIST_ENCODER
   Encoder::instance = &encoder_D; 
-  encoder_D.setup(); // inicializa o encoder direito
-  #if EXIST_MEGA 
+  encoder_D.setup(); // inicializa o encoder direito 
   EncoderB::instance = &encoder_E; 
   encoder_E.setup(); // inicializa o encoder esquerdo
-  #endif // EXIST_MEGA 
   #endif // EXIST_ENCODER
 
-  #if EXIST_BLUE
   HC06.begin(9600); // inicializa o modulo bluetooth HC06
-  #endif // EXIST_BLUE
 
   #if EXIST_MPU6050
   Wire.begin();
@@ -678,7 +660,7 @@ void setup() {
     while(1){Serial.println("Erro. Conecte a MPU6050 no barramento I2C.\n");}
   }
   delay(100);
-  #endif 
+  #endif // EXIST_MPU6050
 
 }
 
@@ -689,17 +671,17 @@ void loop() {
   Visao_computacional();
   #endif // EXIST_VISAO
 
-  #if EXIST_Ultrassonico
+  #if EXIST_ULTRA
   Distancia_Sensor();
-  #endif // EXIST_Ultrassonico
+  #endif // EXIST_ULTRA
     
   #if EXIST_ENCODER
   Encoder_call();
   #endif // EXIST_ENCODER
   
-  #if EXIST_GYROZ
+  #if EXIST_MPU6050
   if(trava_gyro){Giroscopio();}
-  #endif
+  #endif // EXIST_MPU6050
 
   switch (switch_case) {
     case 1:
@@ -709,47 +691,37 @@ void loop() {
     break;
 
     case 2:
-      #if EXIST_CALIBRA_PWM_MANUAL
       Ajuste_pwm_manual();
-      #endif // EXIST_CALIBRA_PWM_MANUAL
     break;
 
     case 3:
-      #if EXIST_CALIBRA_SERVO
       Ajuste_servo_manual();
-      #endif // EXIST_CALIBRA_SERVO
     break;
 
     case 4:
-      #if EXIST_CONTROLE_REMOTO
       Controle_remoto();
-      #endif // EXIST_CONTROLE_REMOTO
     break;
   
     default:
-      #if EXIST_MOTOR_DC 
       motor_direito.para();
-      motor_esquerdo.para();
-      #endif // EXIST_MOTOR_DC 
+      motor_esquerdo.para(); 
       dado_menu = "0";
-      #if EXIST_BLUE
+
       if (HC06.available()) {
         msg_blue = HC06.read();
+
         #if EXIST_VISAO
         if(msg_blue == '1'){switch_case = 1;dado_menu = "1";HC06.println("Modo autonomo");}
         #endif //EXIST_VISAO
-        #if EXIST_CALIBRA_PWM_MANUAL
+
         if(msg_blue == '2'){switch_case = 2;dado_menu = "2";HC06.println("Ajuste pwm manual");}
-        #endif // EXIST_CALIBRA_PWM_MANUAL
-        #if EXIST_CALIBRA_SERVO
+
         if(msg_blue == '3'){switch_case = 3;dado_menu = "3";HC06.println("Ajuste servo");}
-        #endif // EXIST_CALIBRA_SERVO
-        #if EXIST_CONTROLE_REMOTO
+
         if(msg_blue == '4'){switch_case = 4;dado_menu = "4";HC06.println("Controle remoto");}
-        #endif // EXIST_CONTROLE_REMOTO 
+
         msg_blue = 0;     
-      }
-      #endif // EXIST_BLUE   
+      }  
     break;
   }
   Prints();

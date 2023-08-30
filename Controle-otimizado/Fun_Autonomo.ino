@@ -7,11 +7,9 @@ void Autonomo(){
 
   if (HC06.available()) {
     msg_blue = HC06.read();
-   if(msg_blue == 'C'){
-      #if EXIST_MOTOR_DC 
+   if(msg_blue == 'C'){ 
       motor_direito.para();
       motor_esquerdo.para();
-      #endif // EXIST_MOTOR_DC 
       trava_chao = true;
       switch_case = 0;
     }

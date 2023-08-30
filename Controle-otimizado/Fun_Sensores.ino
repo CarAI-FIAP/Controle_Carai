@@ -1,26 +1,26 @@
-#if EXIST_Ultrassonico
+#if EXIST_ULTRA
 void Distancia_Sensor(){
   distancia_1 = HCSR04_1.Calcula_dist();
   distancia_1f = distancia_1;
-  #if EXIST_Ultrassonico_FILTRO
+  #if EXIST_ULTRA_FILTRO
   distancia_1f = Filtro_HCSR04_1.Media_movel(distancia_1);
-  #endif // EXIST_Ultrassonico_FILTRO
+  #endif // EXIST_ULTRA_FILTRO
   obstaculo_1 = HCSR04_1.Detectar_obstaculo(distancia_1f);
   obstaculo = obstaculo_1;
   
 
   // distancia_2 = HCSR04_2.Calcula_dist();
   // distancia_2f = distancia_2;
-  // #if EXIST_Ultrassonico_FILTRO
+  // #if EXIST_ULTRA_FILTRO
   // distancia_2f = Filtro_HCSR04_2.Media_movel(distancia_2);
-  // #endif // EXIST_Ultrassonico_FILTRO
+  // #endif // EXIST_ULTRA_FILTRO
   // obstaculo_2 = HCSR04_2.Detectar_obstaculo(distancia_2f);
 
   // distancia_3 = HCSR04_3.Calcula_dist();
   // distancia_3f = distancia_3;
-  // #if EXIST_Ultrassonico_FILTRO
+  // #if EXIST_ULTRA_FILTRO
   // distancia_3f = Filtro_HCSR04_3.Media_movel(distancia_3);
-  // #endif // EXIST_Ultrassonico_FILTRO
+  // #endif // EXIST_ULTRA_FILTRO
   // obstaculo_3 = HCSR04_3.Detectar_obstaculo(distancia_3f);
 
   // if(obstaculo_1){
@@ -32,7 +32,7 @@ void Distancia_Sensor(){
   // }else{obstaculo = false;}
 
 }
-#endif // EXIST_Ultrassonico
+#endif // EXIST_ULTRA
 
 
 //*********************************************************************************
@@ -43,23 +43,20 @@ void Encoder_call(){
   #if EXIST_ENCODER_FILTRO
   vel_md_f = Filtro_VEL_D.Media_movel(vel_md);
   #endif // EXIST_ENCODER_FILTRO
-
   dist_total = encoder_D.dist_percorrida();
 
-  #if EXIST_MEGA 
   vel_me = encoder_E.velocidade();
   vel_me_f = vel_me;
   #if EXIST_ENCODER_FILTRO
-  // vel_me_f = Filtro_VEL_E.Media_movel(vel_me);
+  vel_me_f = Filtro_VEL_E.Media_movel(vel_me);
   #endif // EXIST_ENCODER_FILTRO
-  #endif // EXIST_MEGA
 }
 #endif // EXIST_ENCODER
 
 //*********************************************************************************
 
+#if EXIST_MPU6050
 void Call_ref_chao(){
-  #if EXIST_GYROZ
   double zgx = 0;
   double x = 0;
   double zgz = 0;
@@ -80,11 +77,11 @@ void Call_ref_chao(){
   }
   Serial.println("Concluido");
   trava_gyro = true;
-  #endif
+
 }
 
-//************************************************************************************
-#if EXIST_GYROZ
+//-----------------------------------------------------------------------------------------
+
 void Giroscopio(){
   while(i2cRead(0x3B, i2c_data, 14));
     gyroX = (int16_t) ((i2c_data[8] << 8) | i2c_data[9]);
@@ -113,4 +110,4 @@ void Giroscopio(){
   
   preInterval = millis();
 }
-#endif
+#endif //EXIST_MPU6050

@@ -1,5 +1,4 @@
  // controle remoto do veiculo
-#if EXIST_CONTROLE_REMOTO
 void Controle_remoto(){
 
   if(obstaculo){auto_estado = 2;} 
@@ -53,4 +52,3 @@ void Controle_remoto(){
     }
   servo.colocar_angulo(angulo_servo);
 }
-#endif // EXIST_CONTROLE_REMOTO
