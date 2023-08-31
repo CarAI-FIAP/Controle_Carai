@@ -7,30 +7,34 @@
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
+#define EXIST_DADOS 1 // existencia de dados para print 
+
 #define EXIST_FILTRO 1 // existencia de filtros
 
 #define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
-#define EXIST_VISAO_ORIGINAL (EXIST_VISAO && 1)
+#define EXIST_VISAO_ORIGINAL (EXIST_VISAO_DADOS && EXIST_VISAO && 1)
 
-#define EXIST_MOTOR_DC 1 // existencia dos motores dc
+#define EXIST_MOTOR_DC_DADOS 1 // existencia dos motores dc
 
 #define EXIST_ENCODER 1 // existencia dos enconders
+#define EXIST_ENCODER_DADOS (EXIST_ENCODER && 1)
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
-#define EXIST_GYRO_PRINT (EXIST_MPU6050 && 1) 
+#define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1) 
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO 1 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
-#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_Ultrassonico && 1) // existencia do filtro para o sensor ultrassonico
+#define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)
+#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 1) // existencia do filtro para o sensor ultrassonico
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
+#define EXIST_INFRA (EXIST_INFRA && 1)
 
-#define EXIST_DADOS 1 // existencia de dados para print
-#define EXIST_MEDIDA (EXIST_DADOS && 0) // existencia de unidade de media para os dados 
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
 //-----------------------------------------------------------------------------

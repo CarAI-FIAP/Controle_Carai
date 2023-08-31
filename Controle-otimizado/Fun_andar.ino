@@ -22,29 +22,34 @@ void Frenagem_fofo(){
       pwm_d--; 
       if(pwm_d < 0){pwm_d = 0;}
       motor_direito.frente(pwm_d);
-      motor_esquerdo.frente(pwm_d);
     }
-  }else{
-    pwm_d = 0;
-    motor_direito.para();
-    motor_esquerdo.para();
-  }
+  }else{pwm_d = 0;motor_direito.para();}
 
-  // if(vel_me_f != 0){
-  //   if(time_frenagem_fofo_e.atingiu_tempo()){pwm_e--; motor_esquerdo.frente(pwm_e);}
-  // }else{motor_esquerdo.para();} 
+  if(vel_me_f != 0){
+    if(time_frenagem_fofo_e.atingiu_tempo()){
+      pwm_e--;
+      if(pwm_e < 0){pwm_e = 0;} 
+      motor_esquerdo.frente(pwm_e);
+    }
+  }else{pwm_e = 0;motor_esquerdo.para();} 
 }
 
 void Aceleracao_fofa(){
+  int var_d = 0;
   if(vel_md_f < VEL_MAX){  
     if(time_frenagem_fofo_d.atingiu_tempo()){
       pwm_d++;
       motor_direito.frente(pwm_d);
-      motor_esquerdo.frente(pwm_d);
     }
-  }else{remoto_estado = 1;}
+  }else{var_d = 1;}
 
-  // if(pwm_e < pwm_max){
-  //   if(time_frenagem_fofo_e.atingiu_tempo()){pwm_e++;}
-  // }else{remoto_estado = 1;}
+  int var_e = 0;
+  if(vel_me_f < VEL_MAX){
+    if(time_frenagem_fofo_e.atingiu_tempo()){
+      pwm_e++;
+      motor_esquerdo.frente(pwm_e);
+    }
+  }else{var_e = 1;}
+
+  if(var_e + var_d == 2){remoto_estado = 1;}
 }
