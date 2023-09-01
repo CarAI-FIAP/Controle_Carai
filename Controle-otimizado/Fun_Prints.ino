@@ -2,7 +2,9 @@
 
 void Prints(){
   #if EXIST_DADOS
-  dados_print_PC += dado_menu;
+  dados_print_PC += String(switch_case);
+  dados_print_PC += " ";
+  dados_print_PC += String(remoto_estado);
   dados_print_PC += " ";
   dados_print_PC += "| ";
 
@@ -10,6 +12,8 @@ void Prints(){
   dados_print_PC += String(estado_motor);
   dados_print_PC += " ";
   dados_print_PC += String(pwm_d);
+  dados_print_PC += " ";
+  dados_print_PC += String(pwm_e);
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_MOTOR_DC
@@ -45,9 +49,9 @@ void Prints(){
   #endif // EXIST_SERVO_DADOS
 
   #if EXIST_GYRO_DADOS
-  dados_print_PC += String(angleX - angulo_x_setoff);
+  dados_print_PC += String(angulo_x_f);
   dados_print_PC += " ";
-  dados_print_PC += String(angleZ - angulo_z_setoff);
+  dados_print_PC += String(angulo_z_f);
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_GYRO_DADOS

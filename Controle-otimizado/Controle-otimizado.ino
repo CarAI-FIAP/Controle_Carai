@@ -1,7 +1,8 @@
+#include <PID_v1.h>
 #include <Wire.h>
 #include <SoftwareSerial.h>
 
-//***********************************************************************************
+//*************************************************************************
 //Definindo existencia: 
 //(1 = Existe,  0 = Não existe). 
 //caso "não exista", toda a parte relacionada a essa existencia será comentada,
@@ -20,37 +21,37 @@
 
 #define EXIST_ENCODER 1 // existencia dos enconders
 #define EXIST_ENCODER_DADOS (EXIST_ENCODER && 1)
-#define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
+#define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 0) 
 
-#define EXIST_MPU6050 0 //define a existencia do MPU6050
+#define EXIST_MPU6050 1 //define a existencia do MPU6050
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1) 
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
 #define EXIST_SERVO_DADOS 1 // existencia do servo motoror
 
-#define EXIST_ULTRA 0  // existencia do sensor ultrassonico
+#define EXIST_ULTRA 1  // existencia do sensor ultrassonico
 #define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)
-#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 1) // existencia do filtro para o sensor ultrassonico
+#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
 #define EXIST_INFRA (EXIST_INFRA && 1)
 
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
-//-----------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // DEFININDO PINOS DO ARDUINO:
 
 // Pinos do motor:
-#define PIN_MD1 12    // pino 1 de controle do motor direito (dominante)
-#define PIN_MD2 11    // pino 2 de controle do motor direito
-#define PIN_ME1 10     // pino 1 de controle do motor esquerdo (dominante)
-#define PIN_ME2 9       // pino 2 de controle do motor esquerdo
+#define PIN_MD1 10   // pino 1 de controle do motor direito (dominante)
+#define PIN_MD2 9   // pino 2 de controle do motor direito
+#define PIN_ME1 12     // pino 1 de controle do motor esquerdo (dominante)
+#define PIN_ME2 11       // pino 2 de controle do motor esquerdo
 
 // Pinos dos encoders:
-#define PIN_EN_DA 18     // pino A de controle do enconder dieito para arduino MEGA
-#define PIN_EN_DB 19     // pino B de controle do enconder dieito para arduino MEGA
+#define PIN_EN_DA 18     // pino A de controle do enconder dieito para arduino MEGA 18
+#define PIN_EN_DB 19     // pino B de controle do enconder dieito para arduino MEGA 19
 #define PIN_EN_EA 2     // pino A de controle do enconder esquerdo para arduino MEGA
-#define PIN_EN_EB 3     // pino B de controle do enconder esquerdo para arduino MEGA
+#define PIN_EN_EB 3    // pino B de controle do enconder esquerdo para arduino MEGA
 
 // Pino do servo:
 #define PIN_SERVO 8     // pino de controle do servo motor 
@@ -78,10 +79,10 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.8     // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.9     // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
-#define TIME_FRENAGEM_FOFO 0.7     // intervalo de tempo para alterar o pwm durante a frenagem
+#define TIME_FRENAGEM_FOFO 0.4     // intervalo de tempo para alterar o pwm durante a frenagem
 #define TIME_CONTROL_VEL 0.7     // intervalo de tempo para alterar o pwm durante o andar do carro
 //-----filtro do encoder-----:
 #define INTERVALO_MEDIA_ENCODER 10     // numero de valores para efetuar a media
@@ -97,7 +98,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 
 //Sobre os sensores ultrassonicos:
 #define DISTANCIA_PARAR 30     // distancia minima (em cm) para o carro parar
-#define DISTANCIA_DETECTA 100     // distancia minima (em cm) para detectar a presença de um corpo
+#define DISTANCIA_DETECTA 30     // distancia minima (em cm) para detectar a presença de um corpo 100
 //-----filtro do sensor ultrassonico-----:
 #define INTERVALO_MEDIA_HCSR04 25     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado
@@ -110,7 +111,10 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 //Sobre o MPU6050:
 #define MEDIA_PARA_GIRO 3000      // media para tarar os angulos do giroscopio
 #define MEDIA_OFFSET 25      // media para impedir o almento constante do angulo parado
+#define MEDIA_OFFSET_Z 40     // media para impedir o almento constante do angulo parado
 //-----filtro dO mp6050-----:
+#define INTERVALO_MEDIA_GIRO 20
+#define NUMERO_FILTROS_GIRO 1
 
 //-----------------------------------------------------------------------------
 // VARIAVEIS GLOBAIS
@@ -121,11 +125,13 @@ int remoto_estado = 0;
 
 int pwm = PWM_MAXIMO;
 int pwm_d = 0; // pwm inicial
-int pwm_e = PWM_MAXIMO; // pwm inicial
+int pwm_e = 0; // pwm inicial
 int pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
 int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
+double angulo_z_f;
+double angulo_x_f;
 
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
@@ -180,7 +186,7 @@ long preInterval; // tempo de variação do angulo do giroscopio
 #endif //EXIST_MPU6050
 
 
-//*******************************************************************
+//*****************************************************************************
 //BIBLIOTECAS E CLASSES:
 
 #if EXIST_MPU6050
@@ -231,7 +237,7 @@ uint8_t i2cRead(uint8_t registerAddress, uint8_t *data, uint8_t nbytes){
 uint8_t i2c_data[14]; //configuração do mpu6050
 #endif //EXIST_MPU6050
 
-//-------------------------------------------------------------------------------------
+//------------------------------------------------------------------------------
 // Classe responsavel pelo setup e orientação dos motores:
 class Motores {
   int pin_m1;
@@ -268,6 +274,7 @@ class Motores {
     estado_motor = 0;
   }
 };
+
 Motores motor_direito(PIN_MD1, PIN_MD2);
 Motores motor_esquerdo(PIN_ME1, PIN_ME2);
 
@@ -300,6 +307,7 @@ class Contador_tempo {
 Contador_tempo time_frenagem_fofo_d(TIME_FRENAGEM_FOFO);
 Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_contrl_vel_d(TIME_CONTROL_VEL);
+Contador_tempo time_contrl_vel_e(TIME_CONTROL_VEL);
 
 //-----------------------------------------------------------------------------
 //Classe para controle de servos
@@ -440,6 +448,11 @@ class Filtro {
     return k / intervalo_media_m;
   }  
 };
+#if EXIST_GYRO_FILTRO
+Filtro Filtro_giro_x(INTERVALO_MEDIA_GIRO, NUMERO_FILTROS_GIRO);
+Filtro Filtro_giro_z(INTERVALO_MEDIA_GIRO, NUMERO_FILTROS_GIRO);
+#endif
+
 #if EXIST_ENCODER_FILTRO
 Filtro Filtro_VEL_D(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
 Filtro Filtro_VEL_E(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
@@ -576,7 +589,7 @@ class EncoderB {
     if(trava_tempo_B){
       tempo_inicial = micros();
       trava_tempo_B = false;
-      volta_inicial = contadorVoltas / 2880.0;
+      volta_inicial = contadorVoltas / NUM_PULSO_VOLTA;
       return velocidade_real;
     }else{
       tempo_passado = micros() - tempo_inicial;
@@ -584,7 +597,7 @@ class EncoderB {
         noInterrupts();
         trava_tempo_B = true;
         tempo_passado = tempo_passado / 1000000;
-        volta_final = contadorVoltas / 2880.0;
+        volta_final = contadorVoltas / NUM_PULSO_VOLTA;
         velocidade_real = volta_final - volta_inicial;
         velocidade_real = velocidade_real / tempo_passado;
         velocidade_real = velocidade_real * 2 * 3.141592 * RAIO_RODA;
@@ -595,10 +608,7 @@ class EncoderB {
   }
 
   double dist_percorrida(){
-    dist_per = contadorVoltas / 1440.0;
-    #if EXIST_MOTOR_DC
-    dist_per = contadorVoltas / 2880.0;
-    #endif
+    dist_per = contadorVoltas / NUM_PULSO_VOLTA;
     dist_per = dist_per * 2 * 3.141592 * RAIO_RODA;
     return dist_per;
   }
@@ -637,7 +647,7 @@ EncoderB* EncoderB::instance = nullptr;
 EncoderB encoder_E(PIN_EN_EA, PIN_EN_EB);
 #endif // EXIST_ENCODER 
 
-/*******************************************************************/
+//***************************************************************************
 void setup() {
 
   Serial.begin(115200); // inicializa o monitor serial
@@ -715,14 +725,14 @@ void loop() {
         msg_blue = HC06.read();
 
         #if EXIST_VISAO
-        if(msg_blue == '1'){switch_case = 1;dado_menu = "1";HC06.println("Modo autonomo");}
+        if(msg_blue == '1'){switch_case = 1;}//autonomo;}
         #endif //EXIST_VISAO
 
-        if(msg_blue == '2'){switch_case = 2;dado_menu = "2";HC06.println("Ajuste pwm manual");}
+        if(msg_blue == '2'){switch_case = 2;}//pwm ajuste}
 
-        if(msg_blue == '3'){switch_case = 3;dado_menu = "3";HC06.println("Ajuste servo");}
+        if(msg_blue == '3'){switch_case = 3;}//servo ajuste;}
 
-        if(msg_blue == '4'){switch_case = 4;dado_menu = "4";HC06.println("Controle remoto");}
+        if(msg_blue == '4'){switch_case = 4;} //controle remoto}
 
         msg_blue = 0;     
       }  
@@ -730,9 +740,5 @@ void loop() {
   }
   Prints();
 }
-/*******************************************************************/
-
-
-
-
+//*****************************************************************************
 

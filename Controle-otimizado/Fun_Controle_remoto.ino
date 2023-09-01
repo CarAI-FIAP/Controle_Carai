@@ -1,7 +1,9 @@
  // controle remoto do veiculo
 void Controle_remoto(){
-
-  if(obstaculo){auto_estado = 2;} 
+  
+  #if EXIST_MPU6050
+  if(trava_chao){Call_ref_chao();trava_chao = false;}
+  #endif
 
   if (HC06.available()) {
     msg_blue = HC06.read();
@@ -33,6 +35,8 @@ void Controle_remoto(){
     }
   }
 
+  if(obstaculo){remoto_estado = 2;}
+
   switch (remoto_estado){
     case 1:
       Andar();
@@ -40,6 +44,7 @@ void Controle_remoto(){
 
     case 2:
       Frenagem_fofo();
+      if(obstaculo){}else{remoto_estado = 3;}
     break;
 
     case 3:
@@ -47,7 +52,7 @@ void Controle_remoto(){
     break;
   
     default:
-
+    remoto_estado = 3;
     break;
     }
   servo.colocar_angulo(angulo_servo);

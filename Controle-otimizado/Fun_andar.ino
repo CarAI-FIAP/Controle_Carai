@@ -1,17 +1,29 @@
 void Andar(){
-  if(vel_md_f < VEL_MAX - 0.2){
+  if(vel_md_f < VEL_MAX - 0.15){
     if(time_contrl_vel_d.atingiu_tempo()){
       pwm_d++; 
       if(pwm_d > 255){pwm_d = 255;}
       motor_direito.frente(pwm_d);
-      motor_esquerdo.frente(pwm_d);
     }
-  }else if(vel_md_f > VEL_MAX + 0.2){
+  }else if(vel_md_f > VEL_MAX + 0.15){
     if(time_contrl_vel_d.atingiu_tempo()){
       pwm_d--; 
       if(pwm_d < 0){pwm_d = 0;}
       motor_direito.frente(pwm_d);
-      motor_esquerdo.frente(pwm_d);
+    }  
+  }
+
+  if(vel_me_f < VEL_MAX - 0.15){
+    if(time_contrl_vel_e.atingiu_tempo()){
+      pwm_e++; 
+      if(pwm_e > 255){pwm_e = 255;}
+      motor_esquerdo.frente(pwm_e);
+    }
+  }else if(vel_me_f > VEL_MAX + 0.15){
+    if(time_contrl_vel_e.atingiu_tempo()){
+      pwm_e--; 
+      if(pwm_e < 0){pwm_e = 0;}
+      motor_esquerdo.frente(pwm_e);
     }  
   }
 }
@@ -39,6 +51,7 @@ void Aceleracao_fofa(){
   if(vel_md_f < VEL_MAX){  
     if(time_frenagem_fofo_d.atingiu_tempo()){
       pwm_d++;
+      if(pwm_d > 255){pwm_d = 255;}
       motor_direito.frente(pwm_d);
     }
   }else{var_d = 1;}
@@ -47,6 +60,7 @@ void Aceleracao_fofa(){
   if(vel_me_f < VEL_MAX){
     if(time_frenagem_fofo_e.atingiu_tempo()){
       pwm_e++;
+      if(pwm_e > 255){pwm_e = 255;}
       motor_esquerdo.frente(pwm_e);
     }
   }else{var_e = 1;}

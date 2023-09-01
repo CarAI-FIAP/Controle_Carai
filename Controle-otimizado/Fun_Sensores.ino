@@ -93,20 +93,34 @@ void Giroscopio(){
   interval = (millis() - preInterval) * 0.001;
   angleX = (angleX + gyroX * interval);
   angulo_x = angleX;
+  angulo_x_f = angulo_x;
+  #if EXIST_GYRO_FILTRO
+  angulo_x_f = Filtro_giro_x.Media_movel(angulo_x);
+  #endif // EXIST_GYRO_FILTRO
 
   if(cont_offsetX < MEDIA_OFFSET){
    angulo_x_set = angulo_x_set + angulo_x;
    cont_offsetX = cont_offsetX + 1;
   }else{angulo_x_setoff = angulo_x_set/MEDIA_OFFSET;}
+  
+  angulo_x_f = angulo_x_f - angulo_x_setoff;
+
+  //-------------------------------------------
 
   gyroZ -= gyroZoffset;
   angleZ = (angleZ + gyroZ * interval);
   angulo_z = angleZ;
+  angulo_z_f = angulo_z;
+  #if EXIST_GYRO_FILTRO
+  angulo_z_f = Filtro_giro_z.Media_movel(angulo_z);
+  #endif // EXIST_GYRO_FILTRO
 
-  if(cont_offsetZ < MEDIA_OFFSET){
+  if(cont_offsetZ < MEDIA_OFFSET_Z){
    angulo_z_set = angulo_z_set + angulo_z;
    cont_offsetZ = cont_offsetZ + 1;
-  }else{angulo_z_setoff = angulo_z_set/MEDIA_OFFSET;}
+  }else{angulo_z_setoff = angulo_z_set/MEDIA_OFFSET_Z;}
+
+  angulo_z_f = angulo_z_f - angulo_z_setoff;
   
   preInterval = millis();
 }
