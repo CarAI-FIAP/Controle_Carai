@@ -4,6 +4,8 @@ void Prints(){
   #if EXIST_DADOS
   dados_print_PC += String(switch_case);
   dados_print_PC += " ";
+  dados_print_PC += String(auto_estado);
+  dados_print_PC += " ";
   dados_print_PC += String(remoto_estado);
   dados_print_PC += " ";
   dados_print_PC += "| ";
@@ -75,11 +77,11 @@ void Prints(){
   #endif // EXIST_ULTRA_DADOS
 
   #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += String(250);
+  dados_print_PC += String(0.8);
   dados_print_PC += "\t";
   dados_print_PC += String(0);
   dados_print_PC += "\t";
-  dados_print_PC += String(-50);
+  dados_print_PC += String(0);
   dados_print_PC += "\t";
   #endif // EXIST_AJUSTE_GRAFICO
 

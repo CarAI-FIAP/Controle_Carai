@@ -1,5 +1,6 @@
 // Ajuste do pwm
 void Ajuste_pwm_manual(){
+  #if EXIST_BLUETOOTH
   if (HC06.available()) {
     msg_blue = HC06.read();
 
@@ -63,5 +64,6 @@ void Ajuste_servo_manual(){
       msg_blue = 0;         
     } 
   }
-  servo.colocar_angulo(angulo_servo); 
+  servo.colocar_angulo(angulo_servo);
+  #endif 
 }

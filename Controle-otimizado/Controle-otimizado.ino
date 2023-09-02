@@ -9,6 +9,7 @@
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
 #define EXIST_DADOS 1 // existencia de dados para print 
+#define EXIST_BLUETOOTH 1 // existencia de filtros
 
 #define EXIST_FILTRO 1 // existencia de filtros
 
@@ -21,15 +22,15 @@
 
 #define EXIST_ENCODER 1 // existencia dos enconders
 #define EXIST_ENCODER_DADOS (EXIST_ENCODER && 1)
-#define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 0) 
+#define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 1 //define a existencia do MPU6050
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1) 
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
 
-#define EXIST_ULTRA 1  // existencia do sensor ultrassonico
+#define EXIST_ULTRA 0  // existencia do sensor ultrassonico
 #define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
 
@@ -79,13 +80,14 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.9     // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.4    // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
-#define TIME_FRENAGEM_FOFO 0.4     // intervalo de tempo para alterar o pwm durante a frenagem
-#define TIME_CONTROL_VEL 0.7     // intervalo de tempo para alterar o pwm durante o andar do carro
+#define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem
+#define TIME_ACELERA_FOFO 0.5     // intervalo de tempo para alterar o pwm durante o andar do carro
+#define TIME_CONTROL_VEL 0.009   // intervalo de tempo para alterar o pwm durante o andar do carro em mls
 //-----filtro do encoder-----:
-#define INTERVALO_MEDIA_ENCODER 10     // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_ENCODER 50    // numero de valores para efetuar a media
 #define NUMERO_FILTROS_ENCODER 1     // numero de filtros que será aplicado
 
 //Sobre os servos:
@@ -119,8 +121,8 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 //-----------------------------------------------------------------------------
 // VARIAVEIS GLOBAIS
 
-int switch_case = 0;  // variavel que controla os casos do switch case
-int auto_estado = 0;
+int switch_case = 1;  // variavel que controla os casos do switch case
+int auto_estado = 3;
 int remoto_estado = 0;
 
 int pwm = PWM_MAXIMO;
@@ -306,6 +308,8 @@ class Contador_tempo {
 };
 Contador_tempo time_frenagem_fofo_d(TIME_FRENAGEM_FOFO);
 Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
+Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
+Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 Contador_tempo time_contrl_vel_d(TIME_CONTROL_VEL);
 Contador_tempo time_contrl_vel_e(TIME_CONTROL_VEL);
 
@@ -649,6 +653,11 @@ EncoderB encoder_E(PIN_EN_EA, PIN_EN_EB);
 
 //***************************************************************************
 void setup() {
+
+  #if EXIST_BLUETOOTH
+  switch_case = 0;  // variavel que controla os casos do switch case
+  auto_estado = 0;
+  #endif
 
   Serial.begin(115200); // inicializa o monitor serial
   

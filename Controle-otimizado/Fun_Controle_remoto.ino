@@ -20,6 +20,8 @@ void Controle_remoto(){
     }else if(msg_blue == 'C'){
       motor_direito.para();
       motor_esquerdo.para();
+      pwm_e = 0;
+      pwm_d = 0;
       switch_case = 0;
       remoto_estado = 0;
 
@@ -44,7 +46,6 @@ void Controle_remoto(){
 
     case 2:
       Frenagem_fofo();
-      if(obstaculo){}else{remoto_estado = 3;}
     break;
 
     case 3:
@@ -52,7 +53,6 @@ void Controle_remoto(){
     break;
   
     default:
-    remoto_estado = 3;
     break;
     }
   servo.colocar_angulo(angulo_servo);

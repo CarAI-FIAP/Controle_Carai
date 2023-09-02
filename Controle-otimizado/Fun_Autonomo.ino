@@ -4,7 +4,8 @@ void Autonomo(){
   #if EXIST_MPU6050
   if(trava_chao){Call_ref_chao();trava_chao = false;}
   #endif
-
+  
+  #if EXIST_BLUETOOTH
   if (HC06.available()) {
     msg_blue = HC06.read();
    if(msg_blue == 'C'){ 
@@ -14,6 +15,7 @@ void Autonomo(){
       switch_case = 0;
     }
   }
+  #endif
 
   if(angulo_visao_real < angulo_minimo){
     angulo_visao_real = angulo_minimo;
