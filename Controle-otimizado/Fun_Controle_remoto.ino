@@ -13,6 +13,7 @@ void Controle_remoto(){
     }else if(msg_blue == 'D'){
       // frenagem fofo
       remoto_estado = 2;
+      trava_pid_vel = false;
 
     }else if(msg_blue == 'F'){
       //sem ideia
@@ -24,6 +25,8 @@ void Controle_remoto(){
       pwm_d = 0;
       switch_case = 0;
       remoto_estado = 0;
+      auto_estado = 0;
+      trava_pid_vel = false;
 
     }else if(msg_blue == '1'){
       angulo_servo = angulo_servo + 5;
@@ -54,6 +57,6 @@ void Controle_remoto(){
   
     default:
     break;
-    }
+  }
   servo.colocar_angulo(angulo_servo);
 }

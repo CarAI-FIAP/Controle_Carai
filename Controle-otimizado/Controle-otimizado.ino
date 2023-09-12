@@ -13,18 +13,24 @@
 
 #define EXIST_FILTRO 1 // existencia de filtros
 
-#define EXIST_VISAO 0 // existencia do modulo bluetooth HC06
-#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)
-#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
-#define EXIST_VISAO_ORIGINAL (EXIST_VISAO_DADOS && EXIST_VISAO && 1)
+#define EXIST_PID 1     // existencia de PID 
+#define EXIST_PID_VEL (EXIST_PID && 1)
+#define EXIST_PID_OFFSET (EXIST_PID && 1)
+#define EXIST_NPID_VEL (!EXIST_PID_VEL)
+#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET)
 
-#define EXIST_MOTOR_DC_DADOS 1 // existencia dos motores dc
+#define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 0)
+#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
+#define EXIST_VISAO_ORIGINAL (EXIST_VISAO_DADOS && EXIST_VISAO && 0)
+
+#define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc
 
 #define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_ENCODER_DADOS (EXIST_ENCODER && 1)
+#define EXIST_ENCODER_DADOS  0
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
-#define EXIST_MPU6050 1 //define a existencia do MPU6050
+#define EXIST_MPU6050 0 //define a existencia do MPU6050
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1) 
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
@@ -83,18 +89,33 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define VEL_MAX 0.4    // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
-#define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem
-#define TIME_ACELERA_FOFO 0.5     // intervalo de tempo para alterar o pwm durante o andar do carro
-#define TIME_CONTROL_VEL 0.009   // intervalo de tempo para alterar o pwm durante o andar do carro em mls
+#define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem (em milisegundos)
+#define TIME_ACELERA_FOFO 0.1     // intervalo de tempo para alterar o pwm durante a aceleraçao de arranque do carro (em milisegundos)
+#define TIME_OFFSET 400
+
 //-----filtro do encoder-----:
-#define INTERVALO_MEDIA_ENCODER 50    // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_ENCODER 50   // numero de valores para efetuar a media
 #define NUMERO_FILTROS_ENCODER 1     // numero de filtros que será aplicado
 
+//PID MOTOR:
+#define KP_MD 250
+#define KI_MD 200 // 180 melhor
+#define KD_MD 30 //10
+
+#define KP_ME 250
+#define KI_ME 200
+#define KD_ME 30
+
+//PID OFFSET:
+#define KP_OFF 250
+#define KI_OFF 200
+#define KD_OFF 20
+
 //Sobre os servos:
-#define ANGULO_INICIAL 30     // angulo real inicial do servo para quando ligar o carro
-#define ANGULO_ZERO 70     // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
-#define ANGULO_MAX 120      // angulo real maximo que o servo pode atingir 
-#define ANGULO_MIN 30     // angulo minimo real que o servo pode atingir (0)
+#define ANGULO_INICIAL 64    // angulo real inicial do servo para quando ligar o carro
+#define ANGULO_ZERO 64     // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
+#define ANGULO_MAX 135     // angulo real maximo que o servo pode atingir 
+#define ANGULO_MIN 0     // angulo minimo real que o servo pode atingir (0)
 #define SERVO_SINAL_MIN 500      // sinal em microsegundos do angulo minimo do servo (configuração do servo)
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
@@ -109,6 +130,8 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 //-----filtro da visão-----:
 #define INTERVALO_MEDIA_VISAO 15     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
+#define INTERVALO_MEDIA_OFFSET 30     // numero de valores para efetuar a media
+#define NUMERO_FILTROS_OFFSET 1    // numero de filtros que será aplicado
 
 //Sobre o MPU6050:
 #define MEDIA_PARA_GIRO 3000      // media para tarar os angulos do giroscopio
@@ -125,15 +148,29 @@ int switch_case = 1;  // variavel que controla os casos do switch case
 int auto_estado = 3;
 int remoto_estado = 0;
 
-int pwm = PWM_MAXIMO;
-int pwm_d = 0; // pwm inicial
-int pwm_e = 0; // pwm inicial
-int pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
-int pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
-double angulo_z_f;
+double zero = 0;
+double pwm = PWM_MAXIMO;
+double pwm_d = 0; // pwm inicial
+double pwm_e = 0; // pwm inicial
+double pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
+double pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
+
+double kp_md = KP_MD;
+double ki_md = KI_MD;
+double kd_md = KD_MD;
+double kp_me = KP_ME;
+double ki_me = KI_ME;
+double kd_me = KD_ME;
+
+double kp_off = KP_OFF;
+double ki_off = KI_OFF;
+double kd_off = KD_OFF;
+
+double angulo_z_f, angulo_z_f_ant;
 double angulo_x_f;
+
 
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
@@ -142,7 +179,10 @@ int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo con
 
 #if EXIST_VISAO
 int angulo_visao, angulo_visao_real, angulo_visao_f; // armazena o angulo dado pela visão computacional
-int esquerda, direita, offset;
+int esquerda, direita;
+int offset;
+double offset_double;
+double angulo_offset;
 #endif //EXIST_VISAO
 
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
@@ -151,11 +191,14 @@ bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do s
 bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool trava_gyro = false;  // trava para offset do gyroscopio
 bool trava_chao = true; // trava para offset do gyroscopio
-// bool trava_tempo_V = true;
-// bool trava_tempo_B = true;
+bool trava_rampa_1vez = true;
+bool trava_rampa = false;
+bool trava_pid_vel = false;
+bool trava_pid_offset = false;
 
 int dado_infra;
 
+double vel_max = VEL_MAX;
 double vel_md, vel_md_f, vel_me, vel_me_f; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
 double dist_total; // armazenam a distancia total percorrida
 
@@ -310,8 +353,7 @@ Contador_tempo time_frenagem_fofo_d(TIME_FRENAGEM_FOFO);
 Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
-Contador_tempo time_contrl_vel_d(TIME_CONTROL_VEL);
-Contador_tempo time_contrl_vel_e(TIME_CONTROL_VEL);
+Contador_tempo time_offset(TIME_OFFSET);
 
 //-----------------------------------------------------------------------------
 //Classe para controle de servos
@@ -464,6 +506,7 @@ Filtro Filtro_VEL_E(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
 
 #if EXIST_VISAO_FILTRO
 Filtro Filtro_visao(INTERVALO_MEDIA_VISAO, NUMERO_FILTROS_VISAO);
+Filtro Filtro_offset(INTERVALO_MEDIA_OFFSET, NUMERO_FILTROS_OFFSET);
 #endif // EXIST_VISAO_FILTRO
 
 #if EXIST_ULTRA_FILTRO
@@ -651,6 +694,16 @@ EncoderB* EncoderB::instance = nullptr;
 EncoderB encoder_E(PIN_EN_EA, PIN_EN_EB);
 #endif // EXIST_ENCODER 
 
+//-----------------------------------------------------------------------------
+// classe para PID
+#if EXIST_PID_VEL 
+PID PID_VEL_D_PWM(&vel_md_f, &pwm_d, &vel_max, kp_md, ki_md, kd_md,P_ON_M, DIRECT); //Kp, Ki, Kd
+PID PID_VEL_E_PWM(&vel_me_f, &pwm_e, &vel_max, kp_me, ki_me, kd_me,P_ON_M, DIRECT); 
+#endif //EXIST_PID_VEL 
+#if EXIST_PID_OFFSET
+PID PID_OFFSET(&offset_double, &angulo_offset, &zero, kp_off, ki_off, kd_off, P_ON_M, DIRECT); 
+#endif
+
 //***************************************************************************
 void setup() {
 
@@ -685,6 +738,22 @@ void setup() {
   delay(100);
   #endif // EXIST_MPU6050
 
+
+  #if EXIST_PID_VEL 
+  PID_VEL_D_PWM.SetSampleTime(50);
+  PID_VEL_E_PWM.SetSampleTime(50);
+  PID_VEL_D_PWM.SetOutputLimits(0, 255);
+  PID_VEL_E_PWM.SetOutputLimits(0, 255);
+  PID_VEL_D_PWM.SetMode(AUTOMATIC);
+  PID_VEL_E_PWM.SetMode(AUTOMATIC);
+  #endif //EXIST_PID_VEL
+
+  #if EXIST_PID_OFFSET
+  PID_OFFSET.SetOutputLimits(-30, 30);
+  PID_OFFSET.SetSampleTime(150); 
+  PID_OFFSET.SetMode(AUTOMATIC);
+  #endif //EXIST_PID_OFFSET
+
 }
 
 //-----------------------------------------------------------------------------
@@ -705,6 +774,14 @@ void loop() {
   #if EXIST_MPU6050
   if(trava_gyro){Giroscopio();}
   #endif // EXIST_MPU6050
+  
+  #if EXIST_PID_VEL 
+  if(trava_pid_vel){PID_VEL_D_PWM.Compute();PID_VEL_E_PWM.Compute();}
+  #endif //EXIST_PID_VEL 
+
+  #if EXIST_PID_OFFSET
+  if(trava_pid_offset){PID_OFFSET.Compute();}
+  #endif //EXIST_PID_OFFSET
 
   switch (switch_case) {
     case 1:
@@ -747,6 +824,7 @@ void loop() {
       }  
     break;
   }
+
   Prints();
 }
 //*****************************************************************************

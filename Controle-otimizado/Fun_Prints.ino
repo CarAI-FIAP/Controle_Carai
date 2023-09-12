@@ -2,13 +2,13 @@
 
 void Prints(){
   #if EXIST_DADOS
-  dados_print_PC += String(switch_case);
-  dados_print_PC += " ";
-  dados_print_PC += String(auto_estado);
-  dados_print_PC += " ";
-  dados_print_PC += String(remoto_estado);
-  dados_print_PC += " ";
-  dados_print_PC += "| ";
+  // dados_print_PC += String(switch_case);
+  // dados_print_PC += " ";
+  // dados_print_PC += String(auto_estado);
+  // dados_print_PC += " ";
+  // dados_print_PC += String(remoto_estado);
+  // dados_print_PC += " ";
+  // dados_print_PC += "| ";
 
   #if EXIST_MOTOR_DC_DADOS
   dados_print_PC += String(estado_motor);
@@ -32,12 +32,12 @@ void Prints(){
 
   #if EXIST_VISAO_DADOS
   #if EXIST_VISAO_ORIGINAL
-  dados_print_PC += String(angulo_visao);
-  dados_print_PC += " ";
+  // dados_print_PC += String(angulo_visao);
+  // dados_print_PC += " ";
   #endif // EXIST_VISAO_ORIGINAL
   #if EXIST_VISAO_FILTRO
-  dados_print_PC += String(angulo_visao_f);
-  dados_print_PC += " ";
+  // dados_print_PC += String(angulo_visao_f);
+  // dados_print_PC += " ";
   #endif // EXIST_VISAO_FILTRO
   dados_print_PC += "| ";
   #endif // EXIST_VISAO_DADOS
@@ -77,7 +77,7 @@ void Prints(){
   #endif // EXIST_ULTRA_DADOS
 
   #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += String(0.8);
+  dados_print_PC += String(100);
   dados_print_PC += "\t";
   dados_print_PC += String(0);
   dados_print_PC += "\t";
@@ -85,6 +85,12 @@ void Prints(){
   dados_print_PC += "\t";
   #endif // EXIST_AJUSTE_GRAFICO
 
+  dados_print_PC += String(angulo_servo - angulo_zero);
+  dados_print_PC += " ";
+  dados_print_PC += String(angulo_offset);
+  dados_print_PC += " ";
+  dados_print_PC += String(offset_double);
+  dados_print_PC += " ";
   Serial.println(dados_print_PC);
   #endif // EXIST_DADOS
   

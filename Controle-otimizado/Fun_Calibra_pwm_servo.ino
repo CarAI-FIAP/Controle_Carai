@@ -25,12 +25,13 @@ void Ajuste_pwm_manual(){
     motor_direito.frente(pwm);
     motor_esquerdo.frente(pwm);   
   }
+  #endif
 }
 
 /*******************************************************************/
 // Ajusta o movimento do servo
 void Ajuste_servo_manual(){
-
+  #if EXIST_BLUETOOTH
   if (HC06.available()) {
     msg_blue = HC06.read();
 
