@@ -15,35 +15,41 @@
 
 #define EXIST_PID 1     // existencia de PID 
 #define EXIST_PID_VEL (EXIST_PID && 1)
-#define EXIST_PID_OFFSET (EXIST_PID && 1)
-#define EXIST_NPID_VEL (!EXIST_PID_VEL)
-#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET)
+#define EXIST_PID_OFFSET (EXIST_PID && 0)
+#define EXIST_NPID_VEL (!EXIST_PID_VEL && 0)
+#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 1)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
-#define EXIST_VISAO_DADOS (EXIST_VISAO && 0)
-#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1) //existencia de filtro nos dados da visão computacional
-#define EXIST_VISAO_ORIGINAL (EXIST_VISAO_DADOS && EXIST_VISAO && 0)
+#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    //existencia de filtro nos dados da visão computacional
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
+#define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
+#define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
 
 #define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc
 
 #define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_ENCODER_DADOS  0
+#define EXIST_ENCODER_DADOS  0   // existencia dos dados do encoder para print
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
-#define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1) 
+#define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
-#define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
+#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico do meio
+#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico da direita
+#define EXIST_ULTRA_ESQUERDA (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico da esquerda
+#define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)  // existencia dos dados do sensor ultrassonico para print
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
-#define EXIST_INFRA (EXIST_INFRA && 1)
+#define EXIST_INFRA_DADOS (EXIST_INFRA && 1)
 
+#define EXIST_SWITCH_DADOS (EXIST_DADOS && 1)   // existencia dos dados do menu para print
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
+
 
 //------------------------------------------------------------------------------
 // DEFININDO PINOS DO ARDUINO:
@@ -77,6 +83,7 @@
 
 // Pinos do modulo bluetooth
 SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
+SoftwareSerial lora(16, 17); // pinos TX, RX do LORA para arduino MEGA
 
 //-----------------------------------------------------------------------------
 // DEFININDO VALORES CONSTANTES:
@@ -86,12 +93,13 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.4    // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.5    // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
+
 #define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem (em milisegundos)
 #define TIME_ACELERA_FOFO 0.1     // intervalo de tempo para alterar o pwm durante a aceleraçao de arranque do carro (em milisegundos)
-#define TIME_OFFSET 400
+#define TIME_OFFSET 400     // intervalo de tempo para alterar o angulo do offset 
 
 //-----filtro do encoder-----:
 #define INTERVALO_MEDIA_ENCODER 50   // numero de valores para efetuar a media
@@ -112,31 +120,33 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define KD_OFF 20
 
 //Sobre os servos:
-#define ANGULO_INICIAL 64    // angulo real inicial do servo para quando ligar o carro
-#define ANGULO_ZERO 64     // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
-#define ANGULO_MAX 135     // angulo real maximo que o servo pode atingir 
-#define ANGULO_MIN 0     // angulo minimo real que o servo pode atingir (0)
+#define ANGULO_INICIAL 115    // angulo real inicial do servo para quando ligar o carro
+#define ANGULO_ZERO 115     // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
+#define ANGULO_MAX 174     // angulo real maximo que o servo pode atingir 
+#define ANGULO_MIN 50    // angulo minimo real que o servo pode atingir (0)
 #define SERVO_SINAL_MIN 500      // sinal em microsegundos do angulo minimo do servo (configuração do servo)
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
 //Sobre os sensores ultrassonicos:
 #define DISTANCIA_PARAR 30     // distancia minima (em cm) para o carro parar
 #define DISTANCIA_DETECTA 30     // distancia minima (em cm) para detectar a presença de um corpo 100
+
 //-----filtro do sensor ultrassonico-----:
 #define INTERVALO_MEDIA_HCSR04 25     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado
 
 //Sobre a visão computacional:
 //-----filtro da visão-----:
-#define INTERVALO_MEDIA_VISAO 15     // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_VISAO 10    // numero de valores para efetuar a media
 #define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
-#define INTERVALO_MEDIA_OFFSET 30     // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_OFFSET 20     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_OFFSET 1    // numero de filtros que será aplicado
 
 //Sobre o MPU6050:
 #define MEDIA_PARA_GIRO 3000      // media para tarar os angulos do giroscopio
 #define MEDIA_OFFSET 25      // media para impedir o almento constante do angulo parado
 #define MEDIA_OFFSET_Z 40     // media para impedir o almento constante do angulo parado
+
 //-----filtro dO mp6050-----:
 #define INTERVALO_MEDIA_GIRO 20
 #define NUMERO_FILTROS_GIRO 1
@@ -144,9 +154,9 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 //-----------------------------------------------------------------------------
 // VARIAVEIS GLOBAIS
 
-int switch_case = 1;  // variavel que controla os casos do switch case
-int auto_estado = 3;
-int remoto_estado = 0;
+int switch_case = 1;    // variavel que controla os casos do switch case do menu 
+int auto_estado = 3;    // variavel que controla os casos do switch case do modo autonomo
+int remoto_estado = 0;  // variavel que controla os casos do switch case do modo de controle remoto
 
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
@@ -177,8 +187,12 @@ int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o po
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
 
+int detec_meio;
+int detec_direita;
+int detec_esquerda;
+
 #if EXIST_VISAO
-int angulo_visao, angulo_visao_real, angulo_visao_f; // armazena o angulo dado pela visão computacional
+int angulo_visao, angulo_visao_real, angulo_visao_f, angulo_visao_antigo; // armazena o angulo dado pela visão computacional
 int esquerda, direita;
 int offset;
 double offset_double;
@@ -413,10 +427,8 @@ class Sensor_ultrassonico {
 
  bool Detectar_obstaculo(float distancia){
   if (distancia < DISTANCIA_DETECTA){
-    detec = 1;
     return true;
   }else{
-    detec = 0;
     return false;
   }
 
@@ -713,6 +725,7 @@ void setup() {
   #endif
 
   Serial.begin(115200); // inicializa o monitor serial
+  lora.begin(57600); // inicializa a comunicação serial do lora
   
   #if EXIST_ENCODER
   Encoder::instance = &encoder_D; 

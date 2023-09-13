@@ -1,39 +1,56 @@
 #if EXIST_ULTRA
 void Distancia_Sensor(){
+  #if EXIST_ULTRA_MEIO
   distancia_1 = HCSR04_1.Calcula_dist();
   distancia_1f = distancia_1;
   #if EXIST_ULTRA_FILTRO
   distancia_1f = Filtro_HCSR04_1.Media_movel(distancia_1);
   #endif // EXIST_ULTRA_FILTRO
   obstaculo_1 = HCSR04_1.Detectar_obstaculo(distancia_1f);
-  obstaculo = obstaculo_1;
+  #endif //EXIST_ULTRA_MEIO
+  
+  #if EXIST_ULTRA_DIREITA
+  distancia_2 = HCSR04_2.Calcula_dist();
+  distancia_2f = distancia_2;
+  #if EXIST_ULTRA_FILTRO
+  distancia_2f = Filtro_HCSR04_2.Media_movel(distancia_2);
+  #endif // EXIST_ULTRA_FILTRO
+  obstaculo_2 = HCSR04_2.Detectar_obstaculo(distancia_2f);
+  #endif //EXIST_ULTRA_DIREITA
+
+  #if EXIST_ULTRA_ESQUERDA 
+  distancia_3 = HCSR04_3.Calcula_dist();
+  distancia_3f = distancia_3;
+  #if EXIST_ULTRA_FILTRO
+  distancia_3f = Filtro_HCSR04_3.Media_movel(distancia_3);
+  #endif // EXIST_ULTRA_FILTRO
+  obstaculo_3 = HCSR04_3.Detectar_obstaculo(distancia_3f);
+  #endif // EXIST_ULTRA_ESQUERDA 
+
+  if(obstaculo_1){
+    detec_meio = 1;
+  }else{detec_meio = 0;}
+
+  if(obstaculo_2){
+    detec_direita = 1;
+  }else{detec_direita = 0;}
+
+  if(obstaculo_3){ 
+    detec_esquerda = 1;
+  }else{detec_esquerda = 0;}
+  
+  if(detec_meio == 1){
+    obstaculo = true;
+  }else if(detec_direita == 1){
+    obstaculo = true;
+  }else if(detec_esquerda == 1){
+    obstaculo = true;
+  }else{obstaculo = false;}
   
 
-  // distancia_2 = HCSR04_2.Calcula_dist();
-  // distancia_2f = distancia_2;
-  // #if EXIST_ULTRA_FILTRO
-  // distancia_2f = Filtro_HCSR04_2.Media_movel(distancia_2);
-  // #endif // EXIST_ULTRA_FILTRO
-  // obstaculo_2 = HCSR04_2.Detectar_obstaculo(distancia_2f);
-
-  // distancia_3 = HCSR04_3.Calcula_dist();
-  // distancia_3f = distancia_3;
-  // #if EXIST_ULTRA_FILTRO
-  // distancia_3f = Filtro_HCSR04_3.Media_movel(distancia_3);
-  // #endif // EXIST_ULTRA_FILTRO
-  // obstaculo_3 = HCSR04_3.Detectar_obstaculo(distancia_3f);
-
-  // if(obstaculo_1){
-  //   obstaculo = true;
-  // }else if(obstaculo_2){
-  //   obstaculo = true;
-  // }else if(obstaculo_3){
-  //   obstaculo = true;
-  // }else{obstaculo = false;}
 
 }
 #endif // EXIST_ULTRA
-
 
 //*********************************************************************************
 #if EXIST_ENCODER
