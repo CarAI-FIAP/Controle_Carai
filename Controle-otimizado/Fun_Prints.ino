@@ -65,7 +65,9 @@ void Prints(){
   #endif // EXIST_GYRO_DADOS
 
   #if EXIST_INFRA_DADOS
-  dados_print_PC += String(dado_infra); // estado de detecção da linha (detectado = 1, não detectado = 0)
+  dados_print_PC += String(dado_infra_d); // estado de detecção da linha do infra direito (detectado = 1, não detectado = 0)
+  dados_print_PC += " ";
+  dados_print_PC += String(dado_infra_e); // estado de detecção da linha  do infra esquerdo (detectado = 1, não detectado = 0)
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_INFRA_DADOS

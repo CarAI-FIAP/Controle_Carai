@@ -15,14 +15,14 @@
 
 #define EXIST_PID 1     // existencia de PID 
 #define EXIST_PID_VEL (EXIST_PID && 1)
-#define EXIST_PID_OFFSET (EXIST_PID && 0)
+#define EXIST_PID_OFFSET (EXIST_PID && 1)
 #define EXIST_NPID_VEL (!EXIST_PID_VEL && 0)
 #define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 1)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    //existencia de filtro nos dados da visão computacional
 #define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
-#define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
+#define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 0)    // existencia dos dados da visão para print
 #define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
 
 #define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc
@@ -115,15 +115,15 @@ SoftwareSerial lora(16, 17); // pinos TX, RX do LORA para arduino MEGA
 #define KD_ME 30
 
 //PID OFFSET:
-#define KP_OFF 250
-#define KI_OFF 200
-#define KD_OFF 20
+#define KP_OFF 0.5
+#define KI_OFF 0.35
+#define KD_OFF 0.1
 
 //Sobre os servos:
-#define ANGULO_INICIAL 115    // angulo real inicial do servo para quando ligar o carro
-#define ANGULO_ZERO 115     // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
-#define ANGULO_MAX 174     // angulo real maximo que o servo pode atingir 
-#define ANGULO_MIN 50    // angulo minimo real que o servo pode atingir (0)
+#define ANGULO_INICIAL 90    // angulo real inicial do servo para quando ligar o carro
+#define ANGULO_ZERO 90   // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
+#define ANGULO_MAX 150    // angulo real maximo que o servo pode atingir 
+#define ANGULO_MIN 40    // angulo minimo real que o servo pode atingir (0)
 #define SERVO_SINAL_MIN 500      // sinal em microsegundos do angulo minimo do servo (configuração do servo)
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
@@ -762,7 +762,7 @@ void setup() {
   #endif //EXIST_PID_VEL
 
   #if EXIST_PID_OFFSET
-  PID_OFFSET.SetOutputLimits(-30, 30);
+  PID_OFFSET.SetOutputLimits(-40, 40);
   PID_OFFSET.SetSampleTime(150); 
   PID_OFFSET.SetMode(AUTOMATIC);
   #endif //EXIST_PID_OFFSET

@@ -36,13 +36,13 @@ void visao_controle(){
   //offset sem PID
   #if EXIST_NPID_OFFSET
   //garantir que apenas o offset de intervalo [-15,15] afete o angulo de offset
-  if(offset_double > 15){
+  if(offset_double > 2){
     if(offset_double < 40){
       if(time_offset.atingiu_tempo()){
       angulo_offset--;
       }
     }
-  }else if(offset_double < -15){
+  }else if(offset_double < -2){
     if(offset_double > -40){
       if(time_offset.atingiu_tempo()){
         angulo_offset++;
@@ -51,8 +51,8 @@ void visao_controle(){
   }else{angulo_offset = 0;}
 
   // filtro para n deixar o offset sair do intervalo [-30,30]
-  if(angulo_offset>30){angulo_offset = 30;}
-  if(angulo_offset<-30){angulo_offset = -30;}
+  if(angulo_offset>60){angulo_offset = 60;}
+  if(angulo_offset<-60){angulo_offset = -60;}
   
   // trava para garantir que em uma curva, caso a camera pare de mandar o offset
   if(offset_double >100){angulo_offset = 0;}
@@ -61,7 +61,6 @@ void visao_controle(){
 
   //aplicação do angulo do offset no servo
   angulo_visao_real = angulo_visao_real + angulo_offset;
-  angulo_servo = angulo_visao_real;
 
   // filtro de segurança para garantir que o angulo não ultrapasse os valores max e min
   if(angulo_visao_real < angulo_minimo){
@@ -69,6 +68,8 @@ void visao_controle(){
   }else if(angulo_visao_real > angulo_maximo){
     angulo_visao_real = angulo_maximo;
   } 
+
+  angulo_servo = angulo_visao_real;
 
   servo.colocar_angulo(angulo_visao_real); 
 
