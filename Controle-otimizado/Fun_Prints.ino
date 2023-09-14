@@ -88,15 +88,23 @@ void Prints(){
   dados_print_PC += "| ";
   #endif // EXIST_ULTRA_DADOS
 
+  dados_print_PC += String(esquerda); // distancia medida pelo ultrass. daesquerda em (cm)
+  dados_print_PC += " ";
+  dados_print_PC += String(direita); // distancia medida pelo ultrass. daesquerda em (cm)
+  dados_print_PC += " ";
+  dados_print_PC += "| ";
+
   #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += String(100); 
+  dados_print_PC += String(1.2); 
   dados_print_PC += "\t";
   dados_print_PC += String(0);
   dados_print_PC += "\t";
   #endif // EXIST_AJUSTE_GRAFICO
 
+  if(time_print.atingiu_tempo()){
   Serial.println(dados_print_PC);
-  lora.println(dados_print_PC);
+  Serial2.println(dados_print_PC);
+  }
   #endif // EXIST_DADOS
   
   dados_print_PC = " ";

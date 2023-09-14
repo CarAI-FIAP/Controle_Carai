@@ -9,21 +9,21 @@
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
 #define EXIST_DADOS 1 // existencia de dados para print 
-#define EXIST_BLUETOOTH 1 // existencia de filtros
+#define EXIST_BLUETOOTH 0 // existencia de filtros
 
 #define EXIST_FILTRO 1 // existencia de filtros
 
 #define EXIST_PID 1     // existencia de PID 
 #define EXIST_PID_VEL (EXIST_PID && 1)
-#define EXIST_PID_OFFSET (EXIST_PID && 1)
-#define EXIST_NPID_VEL (!EXIST_PID_VEL && 0)
-#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 1)
+#define EXIST_NPID_VEL (!EXIST_PID_VEL)
+#define EXIST_PID_OFFSET (EXIST_PID && 0)
+#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 0)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
-#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    //existencia de filtro nos dados da visão computacional
+#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    //existencia de filtro nos dados da visão computacional
 #define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
-#define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 0)    // existencia dos dados da visão para print
-#define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
+#define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
+#define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 0)    // existencia dos dados da visão para print
 
 #define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc
 
@@ -35,7 +35,7 @@
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
@@ -83,7 +83,6 @@
 
 // Pinos do modulo bluetooth
 SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
-SoftwareSerial lora(16, 17); // pinos TX, RX do LORA para arduino MEGA
 
 //-----------------------------------------------------------------------------
 // DEFININDO VALORES CONSTANTES:
@@ -107,12 +106,12 @@ SoftwareSerial lora(16, 17); // pinos TX, RX do LORA para arduino MEGA
 
 //PID MOTOR:
 #define KP_MD 250
-#define KI_MD 200 // 180 melhor
-#define KD_MD 30 //10
+#define KI_MD 150   // 200 
+#define KD_MD 8   //30
 
 #define KP_ME 250
-#define KI_ME 200
-#define KD_ME 30
+#define KI_ME 150
+#define KD_ME 8
 
 //PID OFFSET:
 #define KP_OFF 0.5
@@ -156,7 +155,7 @@ SoftwareSerial lora(16, 17); // pinos TX, RX do LORA para arduino MEGA
 
 int switch_case = 1;    // variavel que controla os casos do switch case do menu 
 int auto_estado = 3;    // variavel que controla os casos do switch case do modo autonomo
-int remoto_estado = 0;  // variavel que controla os casos do switch case do modo de controle remoto
+int remoto_estado = 1;  // variavel que controla os casos do switch case do modo de controle remoto
 
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
@@ -368,6 +367,8 @@ Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 Contador_tempo time_offset(TIME_OFFSET);
+Contador_tempo time_print(60);
+Contador_tempo time_servo(50);
 
 //-----------------------------------------------------------------------------
 //Classe para controle de servos
@@ -724,8 +725,10 @@ void setup() {
   auto_estado = 0;
   #endif
 
-  Serial.begin(115200); // inicializa o monitor serial
-  lora.begin(57600); // inicializa a comunicação serial do lora
+  Serial.begin(9600); // inicializa o monitor serial
+  Serial.setTimeout(100);
+  Serial2.begin(57600); // inicializa a comunicação serial do lora
+  HC06.begin(9600); // inicializa o modulo bluetooth HC06
   
   #if EXIST_ENCODER
   Encoder::instance = &encoder_D; 
@@ -733,8 +736,6 @@ void setup() {
   EncoderB::instance = &encoder_E; 
   encoder_E.setup(); // inicializa o encoder esquerdo
   #endif // EXIST_ENCODER
-
-  HC06.begin(9600); // inicializa o modulo bluetooth HC06
 
   #if EXIST_MPU6050
   Wire.begin();

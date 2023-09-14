@@ -1,18 +1,29 @@
 #if EXIST_VISAO
 void  Visao_computacional(){
+
   if(Serial.available()){
+    delay(10);
     dados_visao = Serial.readStringUntil('\n');
     sscanf(dados_visao.c_str(), "%d,%d,%d,%d", &angulo_visao, &esquerda, &direita, &offset);
-
+  
+  
     //garantir que não tera picos de angulos fora do intervalo [-90,90]
+
     if(angulo_visao > 90){
       angulo_visao = angulo_visao_antigo;
-    }else if(angulo_visao < -90){angulo_visao = angulo_visao_antigo;} 
+    }else if(angulo_visao < -90){
+      angulo_visao = angulo_visao_antigo;
+    }
+
+    // if(angulo_visao > angulo_visao_antigo + 3){
+    //   angulo_visao = angulo_visao_antigo;
+    // }
+
     angulo_visao_antigo = angulo_visao;
-    
 
     //beckup para caso não tenha filtros 
     angulo_visao_f = angulo_visao;
+    // angulo_visao_f = angulo_visao_f*(1+(angulo_visao_f/22));
     offset_double = offset;
 
     #if EXIST_VISAO_FILTRO
@@ -24,6 +35,8 @@ void  Visao_computacional(){
     // transforma o angulo recebido da visão para a versão real do servo 
     angulo_visao_real = angulo_visao_f + angulo_zero;
   }
+  Serial.flush();
+  
 }
 
 void visao_controle(){
@@ -71,7 +84,11 @@ void visao_controle(){
 
   angulo_servo = angulo_visao_real;
 
-  servo.colocar_angulo(angulo_visao_real); 
+
+  if(time_servo.atingiu_tempo()){
+    servo.colocar_angulo(angulo_visao_real); 
+  }
+  
 
 
 }

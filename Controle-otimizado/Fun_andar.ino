@@ -49,7 +49,7 @@ void Frenagem_fofo(){
 
 void Aceleracao_fofa(){
   int var_d = 0;
-  if(vel_md_f < VEL_MAX - 0.15 ){  
+  if(vel_md_f < VEL_MAX - 0.05 ){  
     if(time_acelera_fofo_d.atingiu_tempo()){
       pwm_d++;
       if(pwm_d > 255){pwm_d = 255;}
@@ -58,7 +58,7 @@ void Aceleracao_fofa(){
   }else{var_d = 1;}
 
   int var_e = 0;
-  if(vel_me_f < VEL_MAX - 0.15 ){
+  if(vel_me_f < VEL_MAX - 0.05 ){
     if(time_acelera_fofo_e.atingiu_tempo()){
       pwm_e++;
       if(pwm_e > 255){pwm_e = 255;}
