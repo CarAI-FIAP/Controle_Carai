@@ -19,7 +19,9 @@ void Autonomo(){
       remoto_estado = 0;
       auto_estado = 0;
       switch_case = 0;
-    }else if(msg_blue == 'E'){auto_estado = 1;}
+    }else if(msg_blue == 'E'){
+      auto_estado = 1;
+    }
   }
   #endif
   
@@ -37,7 +39,7 @@ void Autonomo(){
     break;
 
     case 3:
-      Aceleracao_fofa();
+
     break;
   
     default:

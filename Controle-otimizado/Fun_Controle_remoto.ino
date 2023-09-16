@@ -8,7 +8,7 @@ void Controle_remoto(){
   if (HC06.available()) {
     msg_blue = HC06.read();
     if(msg_blue == 'E'){
-      remoto_estado = 2;
+      remoto_estado = 3;
 
     }else if(msg_blue == 'D'){
       // frenagem fofo

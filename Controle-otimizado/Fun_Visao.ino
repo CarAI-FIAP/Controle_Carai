@@ -14,17 +14,19 @@ void  Visao_computacional(){
     }else if(angulo_visao < -90){
       angulo_visao = angulo_visao_antigo;
     }
-
-    // if(angulo_visao > angulo_visao_antigo + 3){
-    //   angulo_visao = angulo_visao_antigo;
-    // }
-
     angulo_visao_antigo = angulo_visao;
 
     //beckup para caso não tenha filtros 
-    angulo_visao_f = angulo_visao;
+    angulo_visao_f = angulo_visao*2;
+    
     // angulo_visao_f = angulo_visao_f*(1+(angulo_visao_f/22));
     offset_double = offset;
+
+    if(offset_antigo - offset_double > abs(20)){
+      offset_double = offset_antigo;
+    }
+
+    offset_antigo = offset_double;
 
     #if EXIST_VISAO_FILTRO
     //filtro dos valores de offset e angulo recebido pela visão
@@ -49,13 +51,13 @@ void visao_controle(){
   //offset sem PID
   #if EXIST_NPID_OFFSET
   //garantir que apenas o offset de intervalo [-15,15] afete o angulo de offset
-  if(offset_double > 2){
+  if(offset_double > 3){
     if(offset_double < 40){
       if(time_offset.atingiu_tempo()){
       angulo_offset--;
       }
     }
-  }else if(offset_double < -2){
+  }else if(offset_double < -3){
     if(offset_double > -40){
       if(time_offset.atingiu_tempo()){
         angulo_offset++;
@@ -68,11 +70,11 @@ void visao_controle(){
   if(angulo_offset<-60){angulo_offset = -60;}
   
   // trava para garantir que em uma curva, caso a camera pare de mandar o offset
-  if(offset_double >100){angulo_offset = 0;}
-  if(offset_double <-100){angulo_offset = 0;}
+  if(offset_double >100){angulo_offset = -60;}
+  if(offset_double <-100){angulo_offset = 60;}
   #endif
 
-  //aplicação do angulo do offset no servo
+  // aplicação do angulo do offset no servo
   angulo_visao_real = angulo_visao_real + angulo_offset;
 
   // filtro de segurança para garantir que o angulo não ultrapasse os valores max e min
@@ -84,10 +86,7 @@ void visao_controle(){
 
   angulo_servo = angulo_visao_real;
 
-
-  if(time_servo.atingiu_tempo()){
-    servo.colocar_angulo(angulo_visao_real); 
-  }
+  servo.colocar_angulo(angulo_visao_real); 
   
 
 

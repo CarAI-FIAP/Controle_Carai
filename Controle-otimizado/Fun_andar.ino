@@ -2,6 +2,7 @@
 void Andar(){
   #if EXIST_PID_VEL 
   trava_pid_vel = true;
+  
   motor_direito.frente(pwm_d);
   motor_esquerdo.frente(pwm_e);
   #endif //EXIST_PID_VEL 
@@ -49,7 +50,7 @@ void Frenagem_fofo(){
 
 void Aceleracao_fofa(){
   int var_d = 0;
-  if(vel_md_f < VEL_MAX - 0.05 ){  
+  if(vel_md_f < 0.1 ){  
     if(time_acelera_fofo_d.atingiu_tempo()){
       pwm_d++;
       if(pwm_d > 255){pwm_d = 255;}
@@ -58,12 +59,17 @@ void Aceleracao_fofa(){
   }else{var_d = 1;}
 
   int var_e = 0;
-  if(vel_me_f < VEL_MAX - 0.05 ){
+  if(vel_me_f < 0.1 ){
     if(time_acelera_fofo_e.atingiu_tempo()){
       pwm_e++;
       if(pwm_e > 255){pwm_e = 255;}
       motor_esquerdo.frente(pwm_e);
     }
   }else{var_e = 1;}
-  if(var_e + var_d == 2){remoto_estado = 1; auto_estado = 1;}
+  if(var_e + var_d == 2){
+    if(time_fofo.atingiu_tempo()){
+      remoto_estado = 1; 
+      auto_estado = 1;
+    }
+  }
 }

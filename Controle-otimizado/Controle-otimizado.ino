@@ -9,7 +9,7 @@
 // de forma a não aparecer no monitor serial e nem pesar no processamento do arduino. 
 
 #define EXIST_DADOS 1 // existencia de dados para print 
-#define EXIST_BLUETOOTH 0 // existencia de filtros
+#define EXIST_BLUETOOTH 1 // existencia de filtros
 
 #define EXIST_FILTRO 1 // existencia de filtros
 
@@ -17,13 +17,13 @@
 #define EXIST_PID_VEL (EXIST_PID && 1)
 #define EXIST_NPID_VEL (!EXIST_PID_VEL)
 #define EXIST_PID_OFFSET (EXIST_PID && 0)
-#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 0)
+#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 1)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    //existencia de filtro nos dados da visão computacional
 #define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
 #define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
-#define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 0)    // existencia dos dados da visão para print
+#define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
 
 #define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc
 
@@ -35,7 +35,7 @@
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 1// existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
@@ -92,13 +92,13 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.5    // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.4    // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
 
 #define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem (em milisegundos)
 #define TIME_ACELERA_FOFO 0.1     // intervalo de tempo para alterar o pwm durante a aceleraçao de arranque do carro (em milisegundos)
-#define TIME_OFFSET 400     // intervalo de tempo para alterar o angulo do offset 
+#define TIME_OFFSET 10     // intervalo de tempo para alterar o angulo do offset 
 
 //-----filtro do encoder-----:
 #define INTERVALO_MEDIA_ENCODER 50   // numero de valores para efetuar a media
@@ -114,9 +114,10 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define KD_ME 8
 
 //PID OFFSET:
+//
 #define KP_OFF 0.5
-#define KI_OFF 0.35
-#define KD_OFF 0.1
+#define KI_OFF 1      // bom =  0.3 (buga a curva) | ruim >= 1 (ocila na reta) 
+#define KD_OFF 0
 
 //Sobre os servos:
 #define ANGULO_INICIAL 90    // angulo real inicial do servo para quando ligar o carro
@@ -136,7 +137,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 
 //Sobre a visão computacional:
 //-----filtro da visão-----:
-#define INTERVALO_MEDIA_VISAO 10    // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_VISAO 20    // numero de valores para efetuar a media
 #define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
 #define INTERVALO_MEDIA_OFFSET 20     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_OFFSET 1    // numero de filtros que será aplicado
@@ -194,7 +195,7 @@ int detec_esquerda;
 int angulo_visao, angulo_visao_real, angulo_visao_f, angulo_visao_antigo; // armazena o angulo dado pela visão computacional
 int esquerda, direita;
 int offset;
-double offset_double;
+double offset_double, offset_antigo;
 double angulo_offset;
 #endif //EXIST_VISAO
 
@@ -368,7 +369,8 @@ Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 Contador_tempo time_offset(TIME_OFFSET);
 Contador_tempo time_print(60);
-Contador_tempo time_servo(50);
+Contador_tempo time_fofo(1000);
+
 
 //-----------------------------------------------------------------------------
 //Classe para controle de servos
@@ -723,6 +725,7 @@ void setup() {
   #if EXIST_BLUETOOTH
   switch_case = 0;  // variavel que controla os casos do switch case
   auto_estado = 0;
+  remoto_estado = 0;
   #endif
 
   Serial.begin(9600); // inicializa o monitor serial
@@ -763,7 +766,7 @@ void setup() {
   #endif //EXIST_PID_VEL
 
   #if EXIST_PID_OFFSET
-  PID_OFFSET.SetOutputLimits(-40, 40);
+  PID_OFFSET.SetOutputLimits(-60, 60);
   PID_OFFSET.SetSampleTime(150); 
   PID_OFFSET.SetMode(AUTOMATIC);
   #endif //EXIST_PID_OFFSET

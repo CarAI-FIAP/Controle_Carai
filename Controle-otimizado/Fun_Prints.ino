@@ -49,7 +49,9 @@ void Prints(){
   #endif // EXIST_VISAO_DADOS
 
   #if EXIST_SERVO_DADOS
-  dados_print_PC += String(angulo_servo); // angulo real que o servo utilizará [angulo min, angulo max]
+  dados_print_PC += String(angulo_servo); // angulo real que o servo utilizará [angulo min, angulo max] com offset
+  dados_print_PC += " ";
+  dados_print_PC += String(angulo_servo - angulo_offset); // angulo real que o servo sem offset
   dados_print_PC += " ";
   dados_print_PC += String(angulo_servo - angulo_zero); // angulo do servo com "tara" [-90,90]
   dados_print_PC += " ";
@@ -87,12 +89,6 @@ void Prints(){
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_ULTRA_DADOS
-
-  dados_print_PC += String(esquerda); // distancia medida pelo ultrass. daesquerda em (cm)
-  dados_print_PC += " ";
-  dados_print_PC += String(direita); // distancia medida pelo ultrass. daesquerda em (cm)
-  dados_print_PC += " ";
-  dados_print_PC += "| ";
 
   #if EXIST_AJUSTE_GRAFICO
   dados_print_PC += String(1.2); 
