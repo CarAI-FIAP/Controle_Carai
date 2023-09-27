@@ -62,9 +62,22 @@ void Ajuste_servo_manual(){
     }else if(msg_blue == '2'){
       // diminui angulo
       angulo_servo--;      
-      msg_blue = 0;         
-    } 
+      msg_blue = 0;   
+
+    }  
   }
+
+  if(Serial.available() > 0) {angulo_servo = Serial.parseInt();}
+
   servo.colocar_angulo(angulo_servo);
   #endif 
 }
+
+
+
+
+
+
+
+
+

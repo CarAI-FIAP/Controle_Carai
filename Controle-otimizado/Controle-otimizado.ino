@@ -16,26 +16,27 @@
 #define EXIST_PID 1     // existencia de PID 
 #define EXIST_PID_VEL (EXIST_PID && 1)
 #define EXIST_NPID_VEL (!EXIST_PID_VEL)
-#define EXIST_PID_OFFSET (EXIST_PID && 0)
+#define EXIST_PID_OFFSET (EXIST_PID && 1)
 #define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 1)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
-#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    //existencia de filtro nos dados da visão computacional
-#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
+#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    // existencia de filtro nos dados do angulo da visão computacional
+#define EXIST_OFFSET_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    //existencia de filtro nos dados do offet da visão computacional
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 0)    // existencia dos dados da visão para print
 #define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
 #define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
 
-#define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc
+#define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc PWM
 
 #define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_ENCODER_DADOS  0   // existencia dos dados do encoder para print
+#define EXIST_ENCODER_DADOS 0   // existencia dos dados do encoder para print
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 1// existencia do servo motoror
+#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
@@ -48,7 +49,7 @@
 #define EXIST_INFRA_DADOS (EXIST_INFRA && 1)
 
 #define EXIST_SWITCH_DADOS (EXIST_DADOS && 1)   // existencia dos dados do menu para print
-#define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
+#define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 1)
 
 
 //------------------------------------------------------------------------------
@@ -67,7 +68,7 @@
 #define PIN_EN_EB 3    // pino B de controle do enconder esquerdo para arduino MEGA
 
 // Pino do servo:
-#define PIN_SERVO 8     // pino de controle do servo motor 
+#define PIN_SERVO 8    // pino de controle do servo motor 8
 
 // Pinos dos sensores ultrassonicos
 #define PIN_TRIG_1 7     // pino trig do ultrassonico 1
@@ -92,7 +93,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.4    // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.3  // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
 
@@ -104,27 +105,32 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define INTERVALO_MEDIA_ENCODER 50   // numero de valores para efetuar a media
 #define NUMERO_FILTROS_ENCODER 1     // numero de filtros que será aplicado
 
-//PID MOTOR:
-#define KP_MD 250
-#define KI_MD 150   // 200 
-#define KD_MD 8   //30
+//PID cruzeiro:
+#define KP_MC 180  //bom = 180   900
+#define KI_MC 110 //bom = 110    500
+#define KD_MC 5   //bom = 5    550
 
-#define KP_ME 250
-#define KI_ME 150
-#define KD_ME 8
+//PID curava:
+#define KP_MCU 200  //bom = 
+#define KI_MCU 200  //bom = 
+#define KD_MCU 5   //bom = 
+
+//PID frenagem fofa:
+#define KP_MFF 180   //bom = 
+#define KI_MFF 380   //bom = 
+#define KD_MFF 5     //bom = 
 
 //PID OFFSET:
-//
-#define KP_OFF 0.5
-#define KI_OFF 1      // bom =  0.3 (buga a curva) | ruim >= 1 (ocila na reta) 
-#define KD_OFF 0
+#define KP_OFF 0.2     // bom = 0.5 (buga a curva)
+#define KI_OFF 0.3   // bom =  0.3 (buga a curva) | ruim >= 1 (ocila na reta) 
+#define KD_OFF 0  //0
 
 //Sobre os servos:
-#define ANGULO_INICIAL 90    // angulo real inicial do servo para quando ligar o carro
-#define ANGULO_ZERO 90   // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
-#define ANGULO_MAX 150    // angulo real maximo que o servo pode atingir 
-#define ANGULO_MIN 40    // angulo minimo real que o servo pode atingir (0)
-#define SERVO_SINAL_MIN 500      // sinal em microsegundos do angulo minimo do servo (configuração do servo)
+#define ANGULO_INICIAL 80   // angulo real inicial do servo para quando ligar o carro
+#define ANGULO_ZERO 80  // angulo real que sera considerado o ponto zero (deixar as rodas retas) 
+#define ANGULO_MAX 150   // angulo real maximo que o servo pode atingir 
+#define ANGULO_MIN 10    // angulo minimo real que o servo pode atingir (0)
+#define SERVO_SINAL_MIN 500      // sinal em microsegundos do angulo minimo do servo (configuração do servo) 500
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
 //Sobre os sensores ultrassonicos:
@@ -136,9 +142,11 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado
 
 //Sobre a visão computacional:
-//-----filtro da visão-----:
-#define INTERVALO_MEDIA_VISAO 20    // numero de valores para efetuar a media
+#define FATOR_ANGULO_VISAO 4    //numero que será multiplicado ao angulo de visão recebido
+//-----filtro da visão compitacional -----:
+#define INTERVALO_MEDIA_VISAO 8     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
+
 #define INTERVALO_MEDIA_OFFSET 20     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_OFFSET 1    // numero de filtros que será aplicado
 
@@ -167,12 +175,13 @@ double pwm_e = 0; // pwm inicial
 double pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
 double pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
 
-double kp_md = KP_MD;
-double ki_md = KI_MD;
-double kd_md = KD_MD;
-double kp_me = KP_ME;
-double ki_me = KI_ME;
-double kd_me = KD_ME;
+double kp_mc = KP_MC;
+double ki_mc = KI_MC;
+double kd_mc = KD_MC;
+
+double kp_me = KP_MC;
+double ki_me = KI_MC;
+double kd_me = KD_MC;
 
 double kp_off = KP_OFF;
 double ki_off = KI_OFF;
@@ -181,11 +190,17 @@ double kd_off = KD_OFF;
 double angulo_z_f, angulo_z_f_ant;
 double angulo_x_f;
 
+int offset_teste;
+
 
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
+int intervalo_maximo = angulo_maximo - angulo_zero;
+int intervalo_minimo = angulo_minimo - angulo_zero;
+
+int angulo_teste, angulo_teste_2, trava_reto;
 
 int detec_meio;
 int detec_direita;
@@ -199,20 +214,25 @@ double offset_double, offset_antigo;
 double angulo_offset;
 #endif //EXIST_VISAO
 
+bool trava_curva_direita = true;
+bool trava_curva_esquerda = true;
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool obstaculo_1 = false; // armazena a indicação de obstaculo no caminho do sensor 1
 bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do sensor 2
 bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool trava_gyro = false;  // trava para offset do gyroscopio
 bool trava_chao = true; // trava para offset do gyroscopio
-bool trava_rampa_1vez = true;
-bool trava_rampa = false;
 bool trava_pid_vel = false;
 bool trava_pid_offset = false;
+bool trava_teste_reta = false;
+
+bool detec_curva = false;
 
 int dado_infra;
 
 double vel_max = VEL_MAX;
+double vel_max_d = VEL_MAX;
+double vel_max_e = VEL_MAX;
 double vel_md, vel_md_f, vel_me, vel_me_f; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
 double dist_total; // armazenam a distancia total percorrida
 
@@ -368,8 +388,12 @@ Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 Contador_tempo time_offset(TIME_OFFSET);
-Contador_tempo time_print(60);
-Contador_tempo time_fofo(1000);
+Contador_tempo time_print(10); //itervalo de tempo para printar
+Contador_tempo time_fofo(1000); 
+Contador_tempo time_servo(100);
+Contador_tempo time_curva_e(7500);
+Contador_tempo time_curva_d(9500);
+
 
 
 //-----------------------------------------------------------------------------
@@ -521,8 +545,10 @@ Filtro Filtro_VEL_E(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
 
 #if EXIST_VISAO_FILTRO
 Filtro Filtro_visao(INTERVALO_MEDIA_VISAO, NUMERO_FILTROS_VISAO);
-Filtro Filtro_offset(INTERVALO_MEDIA_OFFSET, NUMERO_FILTROS_OFFSET);
 #endif // EXIST_VISAO_FILTRO
+#if EXIST_OFFSET_FILTRO
+Filtro Filtro_offset(INTERVALO_MEDIA_OFFSET, NUMERO_FILTROS_OFFSET);
+#endif // EXIST_OFFSET_FILTRO
 
 #if EXIST_ULTRA_FILTRO
 Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
@@ -567,7 +593,7 @@ class Encoder {
       return velocidade_real;
     }else{
       tempo_passado = micros() - tempo_inicial;
-      if(tempo_passado >= 500){
+      if(tempo_passado >= 1000){
         noInterrupts();
         trava_tempo_V = true;
         tempo_passado = tempo_passado / 1000000;
@@ -655,7 +681,7 @@ class EncoderB {
       return velocidade_real;
     }else{
       tempo_passado = micros() - tempo_inicial;
-      if(tempo_passado >= 500){
+      if(tempo_passado >= 1000){
         noInterrupts();
         trava_tempo_B = true;
         tempo_passado = tempo_passado / 1000000;
@@ -712,12 +738,13 @@ EncoderB encoder_E(PIN_EN_EA, PIN_EN_EB);
 //-----------------------------------------------------------------------------
 // classe para PID
 #if EXIST_PID_VEL 
-PID PID_VEL_D_PWM(&vel_md_f, &pwm_d, &vel_max, kp_md, ki_md, kd_md,P_ON_M, DIRECT); //Kp, Ki, Kd
-PID PID_VEL_E_PWM(&vel_me_f, &pwm_e, &vel_max, kp_me, ki_me, kd_me,P_ON_M, DIRECT); 
+PID PID_VEL_D_PWM(&vel_md_f, &pwm_d, &vel_max_d, kp_mc, ki_mc, kd_mc, P_ON_M, DIRECT); //Kp, Ki, Kd
+PID PID_VEL_E_PWM(&vel_me_f, &pwm_e, &vel_max_e, kp_mc, ki_mc, kd_mc, P_ON_M, DIRECT); 
 #endif //EXIST_PID_VEL 
 #if EXIST_PID_OFFSET
 PID PID_OFFSET(&offset_double, &angulo_offset, &zero, kp_off, ki_off, kd_off, P_ON_M, DIRECT); 
-#endif
+#endif //EXIST_PID_OFFSET
+
 
 //***************************************************************************
 void setup() {
@@ -757,8 +784,8 @@ void setup() {
 
 
   #if EXIST_PID_VEL 
-  PID_VEL_D_PWM.SetSampleTime(50);
-  PID_VEL_E_PWM.SetSampleTime(50);
+  PID_VEL_D_PWM.SetSampleTime(200);
+  PID_VEL_E_PWM.SetSampleTime(200);
   PID_VEL_D_PWM.SetOutputLimits(0, 255);
   PID_VEL_E_PWM.SetOutputLimits(0, 255);
   PID_VEL_D_PWM.SetMode(AUTOMATIC);
@@ -766,8 +793,8 @@ void setup() {
   #endif //EXIST_PID_VEL
 
   #if EXIST_PID_OFFSET
-  PID_OFFSET.SetOutputLimits(-60, 60);
-  PID_OFFSET.SetSampleTime(150); 
+  PID_OFFSET.SetOutputLimits(intervalo_minimo, intervalo_maximo);
+  PID_OFFSET.SetSampleTime(10); //150 valor que estava
   PID_OFFSET.SetMode(AUTOMATIC);
   #endif //EXIST_PID_OFFSET
 

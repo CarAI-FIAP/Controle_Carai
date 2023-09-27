@@ -8,15 +8,16 @@ void Controle_remoto(){
   if (HC06.available()) {
     msg_blue = HC06.read();
     if(msg_blue == 'E'){
-      remoto_estado = 3;
+      // andar 
+      remoto_estado = 1;
 
     }else if(msg_blue == 'D'){
       // frenagem fofo
       remoto_estado = 2;
-      trava_pid_vel = false;
 
     }else if(msg_blue == 'F'){
-      //sem ideia
+      //testar mudança de velocidade
+       remoto_estado = 3;
 
     }else if(msg_blue == 'C'){
       motor_direito.para();
@@ -27,16 +28,16 @@ void Controle_remoto(){
       remoto_estado = 0;
       auto_estado = 0;
       trava_pid_vel = false;
-
+     
     }else if(msg_blue == '1'){
-      angulo_servo = angulo_servo + 5;
+      angulo_servo = angulo_servo + 20;
       if(angulo_servo > angulo_maximo){angulo_servo = angulo_maximo;}
-      msg_blue = 0;
+      
 
     }else if(msg_blue == '2'){
-      angulo_servo = angulo_servo - 5;
+      angulo_servo = angulo_servo - 20;
       if(angulo_servo < angulo_minimo){angulo_servo = angulo_minimo;}
-      msg_blue = 0;
+      
     }
   }
 
@@ -44,19 +45,47 @@ void Controle_remoto(){
 
   switch (remoto_estado){
     case 1:
+      #if EXIST_PID_VEL 
+      PID_VEL_D_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
+      PID_VEL_E_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
+      #endif //#if EXIST_PID_VEL 
+      vel_max_d = VEL_MAX;
+      vel_max_e = VEL_MAX;
+      vel_max = VEL_MAX;
+
+      // if(angulo_servo < 80){
+      // vel_max_d = VEL_MAX + 0.2;
+      // vel_max_e = VEL_MAX - 0.2;        
+      // }
       Andar();
     break;
 
     case 2:
+    #if EXIST_PID_VEL 
+      PID_VEL_D_PWM.SetTunings(KP_MFF, KI_MFF, KD_MFF);
+      PID_VEL_E_PWM.SetTunings(KP_MFF, KI_MFF, KD_MFF);
+    #endif
       Frenagem_fofo();
     break;
 
     case 3:
-      Aceleracao_fofa();
+    #if EXIST_PID_VEL 
+      PID_VEL_D_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
+      PID_VEL_E_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
+    #endif 
+      vel_max_d = VEL_MAX + 0.2;
+      vel_max_e = VEL_MAX - 0.2; 
+      Andar();
     break;
-  
+
+    case 4:
+      
+    break;
+    
     default:
     break;
   }
+  
   servo.colocar_angulo(angulo_servo);
+  
 }

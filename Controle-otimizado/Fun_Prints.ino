@@ -21,14 +21,14 @@ void Prints(){
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_MOTOR_DC
-
+  
   #if EXIST_ENCODER_DADOS
   dados_print_PC += String(vel_md_f);  // velocidade do motor direito em (m/s)
   dados_print_PC += " ";
   dados_print_PC += String(vel_me_f);  // velocidade do motor esquerdo em (m/s)
   dados_print_PC += " ";
-  dados_print_PC += String(dist_total);  // distancia total percorrida pelo carro em (metros)
-  dados_print_PC += " ";
+  // dados_print_PC += String(dist_total);  // distancia total percorrida pelo carro em (metros)
+  // dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_ENCODER_DADOS
 
@@ -38,25 +38,28 @@ void Prints(){
   dados_print_PC += " ";  
   dados_print_PC += String(angulo_offset); // angulo acrescentado ao angulo que vai ao servo
   dados_print_PC += " ";
+  dados_print_PC += "| ";
   #endif //EXIST_OFFSET_DADOS
   #if EXIST_VISAO_ANGULO_DADOS
-  dados_print_PC += String(angulo_visao_f); // angulo recebido pela visão [-90,90]
+  dados_print_PC += String(angulo_teste); // angulo recebido pela visão [-90,90]
+  dados_print_PC += " ";  
+  dados_print_PC += String(angulo_visao_f); // angulo recebido pela visão com fator,  filtrado e com trava para variação longa
   dados_print_PC += " ";  
   dados_print_PC += String(angulo_visao_real - angulo_offset); // angulo real que será utilizado pelo servo (sem a tara) [angulo min, angulo max] 
   dados_print_PC += " ";
-  #endif // EXIST_VISAO_ANGULO_DADOS
+  #endif // EXIST_VISAO_ANGULO_DADOS  angulo_teste;
   dados_print_PC += "| ";
   #endif // EXIST_VISAO_DADOS
 
   #if EXIST_SERVO_DADOS
   dados_print_PC += String(angulo_servo); // angulo real que o servo utilizará [angulo min, angulo max] com offset
   dados_print_PC += " ";
-  dados_print_PC += String(angulo_servo - angulo_offset); // angulo real que o servo sem offset
+  dados_print_PC += String(angulo_servo - angulo_zero); // angulo real que do servo sem offset
   dados_print_PC += " ";
-  dados_print_PC += String(angulo_servo - angulo_zero); // angulo do servo com "tara" [-90,90]
+  dados_print_PC += String(angulo_servo - angulo_offset); // angulo do servo com "tara" [-90,90]
   dados_print_PC += " ";
   dados_print_PC += "| ";
-  #endif // EXIST_SERVO_DADOS
+  #endif // EXIST_SERVO_DADOS  
 
   #if EXIST_GYRO_DADOS
   dados_print_PC += String(angulo_x_f); // angulo de rotação do carro (diferente do angulo do servo)
@@ -91,14 +94,36 @@ void Prints(){
   #endif // EXIST_ULTRA_DADOS
 
   #if EXIST_AJUSTE_GRAFICO
-  dados_print_PC += String(1.2); 
+  dados_print_PC += String(0); 
   dados_print_PC += "\t";
-  dados_print_PC += String(0);
-  dados_print_PC += "\t";
+  // dados_print_PC += String(vel_max_d); 
+  // dados_print_PC += "\t";
+  // dados_print_PC += String(vel_max_e); 
+  // dados_print_PC += "\t";    
+  // dados_print_PC += String(0);
+  // dados_print_PC += "\t";
+  // dados_print_PC += String(0);
+  // dados_print_PC += "\t";
   #endif // EXIST_AJUSTE_GRAFICO
 
+  dados_print_PC += String(angulo_teste); // angulo recebido pela visão [-90,90]
+  dados_print_PC += " ";  
+  dados_print_PC += String(angulo_teste_2); // angulo recebido pela visão [-90,90]
+  dados_print_PC += " "; 
+  // dados_print_PC += "|"; 
+  // dados_print_PC += String(offset); // Valor de offset dado pela visão [-200,200] negativo = defazagem para esquerda
+  // dados_print_PC += " "; 
+  // dados_print_PC += String(angulo_offset); // angulo acrescentado ao angulo que vai ao servo
+  // dados_print_PC += " ";
+  // dados_print_PC += "|"; 
+  // dados_print_PC += String(esquerda); // angulo recebido pela visão [-90,90]
+  // dados_print_PC += " ";  
+  // dados_print_PC += String(direita); // angulo recebido pela visão [-90,90]
+  // dados_print_PC += " "; 
+  
+  
   if(time_print.atingiu_tempo()){
-  Serial.println(dados_print_PC);
+  // Serial.println(dados_print_PC);
   Serial2.println(dados_print_PC);
   }
   #endif // EXIST_DADOS
