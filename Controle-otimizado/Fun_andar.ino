@@ -41,21 +41,31 @@ void Frenagem_fofo(){
   vel_max_d = 0;
   vel_max_e = 0; 
  
+ int parado_e = 0;
  if(vel_md_f <= 0.09){ 
     // desliga o motor e o PID direito quando a velocidade é MUITO baixa
     pwm_d = 0;
     motor_direito.para();
     PID_VEL_D_PWM.SetMode(MANUAL);
     trava_pid_vel = false;
+    parado_e = 1;
   }else{motor_direito.frente(pwm_d);}
 
+  int parado_d = 0;
   if(vel_me_f <= 0.09){
     // desliga o motor e o PID direito quando a velocidade é MUITO baixa
     pwm_e = 0;
     motor_esquerdo.para();
     PID_VEL_E_PWM.SetMode(MANUAL);
     trava_pid_vel = false;
+    parado_d = 1;
   }else{motor_esquerdo.frente(pwm_e);} 
+
+  int paradoo = 0;
+  paradoo = parado_d + parado_e;
+  
+  if(paradoo = 2){trava_ultrasson = true;}
+   
   #endif //EXIST_PID_VEL 
 
   //---***---***---***---***---***---**--**---***---***---**---***---***---***--

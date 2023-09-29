@@ -5,14 +5,18 @@ void Controle_remoto(){
   if(trava_chao){Call_ref_chao();trava_chao = false;}
   #endif
 
+  if(trava_ultrasson){if(obstaculo){remoto_estado = 2;}else{remoto_estado = 1;}}
+
   if (HC06.available()) {
     msg_blue = HC06.read();
     if(msg_blue == 'E'){
       // andar 
+      trava_ultrasson = true;
       remoto_estado = 1;
 
     }else if(msg_blue == 'D'){
       // frenagem fofo
+      trava_ultrasson = false;
       remoto_estado = 2;
 
     }else if(msg_blue == 'F'){
@@ -22,6 +26,7 @@ void Controle_remoto(){
     }else if(msg_blue == 'C'){
       motor_direito.para();
       motor_esquerdo.para();
+      trava_ultrasson = false;
       pwm_e = 0;
       pwm_d = 0;
       switch_case = 0;
@@ -73,8 +78,8 @@ void Controle_remoto(){
       PID_VEL_D_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
       PID_VEL_E_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
     #endif 
-      vel_max_d = VEL_MAX + 0.2;
-      vel_max_e = VEL_MAX - 0.2; 
+      vel_max_d = VEL_MAX + 0.15;
+      vel_max_e = VEL_MAX - 0.15; 
       Andar();
     break;
 

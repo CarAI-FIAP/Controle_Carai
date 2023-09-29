@@ -17,11 +17,11 @@
 #define EXIST_PID_VEL (EXIST_PID && 1)
 #define EXIST_NPID_VEL (!EXIST_PID_VEL)
 #define EXIST_PID_OFFSET (EXIST_PID && 1)
-#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 1)
+#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 0)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    // existencia de filtro nos dados do angulo da visão computacional
-#define EXIST_OFFSET_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    //existencia de filtro nos dados do offet da visão computacional
+#define EXIST_OFFSET_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    //existencia de filtro nos dados do offet da visão computacional
 #define EXIST_VISAO_DADOS (EXIST_VISAO && 0)    // existencia dos dados da visão para print
 #define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
 #define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
@@ -39,17 +39,17 @@
 #define EXIST_SERVO_DADOS 0 // existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
-#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
+#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 1) // existencia do filtro para o sensor ultrassonico
 #define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico do meio
-#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico da direita
-#define EXIST_ULTRA_ESQUERDA (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico da esquerda
+#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da direita
+#define EXIST_ULTRA_ESQUERDA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da esquerda
 #define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)  // existencia dos dados do sensor ultrassonico para print
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
 #define EXIST_INFRA_DADOS (EXIST_INFRA && 1)
 
 #define EXIST_SWITCH_DADOS (EXIST_DADOS && 1)   // existencia dos dados do menu para print
-#define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 1)
+#define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
 
 
 //------------------------------------------------------------------------------
@@ -71,12 +71,12 @@
 #define PIN_SERVO 8    // pino de controle do servo motor 8
 
 // Pinos dos sensores ultrassonicos
-#define PIN_TRIG_1 7     // pino trig do ultrassonico 1
-#define PIN_ECHO_1 6     // pino echo do ultrassonico 1
-#define PIN_TRIG_2 26     // pino trig do ultrassonico 2
-#define PIN_ECHO_2 25     // pino echo do ultrassonico 2
-#define PIN_TRIG_3 28     // pino trig do ultrassonico 3
-#define PIN_ECHO_3 27     // pino echo do ultrassonico 3
+#define PIN_TRIG_1 7     // pino trig do ultrassonico 1 meio
+#define PIN_ECHO_1 6     // pino echo do ultrassonico 1 meio
+#define PIN_TRIG_2 26     // pino trig do ultrassonico 2 direita
+#define PIN_ECHO_2 25     // pino echo do ultrassonico 2 direita
+#define PIN_TRIG_3 28     // pino trig do ultrassonico 3 esquerda
+#define PIN_ECHO_3 27     // pino echo do ultrassonico 3 esquerda
 
 // Pinos dos sensores infravermelhos
 #define PIN_INFRA_D 46     // pinos do sensor infra direito
@@ -106,24 +106,25 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define NUMERO_FILTROS_ENCODER 1     // numero de filtros que será aplicado
 
 //PID cruzeiro:
-#define KP_MC 180  //bom = 180   900
-#define KI_MC 110 //bom = 110    500
-#define KD_MC 5   //bom = 5    550
+#define KP_MC 400  //bom = 180   400
+#define KI_MC 400 //bom = 110    400
+#define KD_MC 20  //bom = 5    20
 
 //PID curava:
-#define KP_MCU 200  //bom = 
-#define KI_MCU 200  //bom = 
-#define KD_MCU 5   //bom = 
+#define KP_MCU 400  //bom = 
+#define KI_MCU 500  //bom = 
+#define KD_MCU 20   //bom = 
 
 //PID frenagem fofa:
-#define KP_MFF 180   //bom = 
-#define KI_MFF 380   //bom = 
+#define KP_MFF 400   //bom = 
+#define KI_MFF 950   //bom = 
 #define KD_MFF 5     //bom = 
 
 //PID OFFSET:
-#define KP_OFF 0.2     // bom = 0.5 (buga a curva)
-#define KI_OFF 0.3   // bom =  0.3 (buga a curva) | ruim >= 1 (ocila na reta) 
-#define KD_OFF 0  //0
+#define KP_OFF 0.6    // bom = 0.2
+#define KI_OFF 0.9   // bom =  0.3  
+#define KD_OFF 0     //0
+#define TEMPO_PID_OFFSET 200  
 
 //Sobre os servos:
 #define ANGULO_INICIAL 80   // angulo real inicial do servo para quando ligar o carro
@@ -134,20 +135,20 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
 //Sobre os sensores ultrassonicos:
-#define DISTANCIA_PARAR 30     // distancia minima (em cm) para o carro parar
-#define DISTANCIA_DETECTA 30     // distancia minima (em cm) para detectar a presença de um corpo 100
+#define DISTANCIA_PARAR 75   // distancia minima (em cm) para o carro parar
+#define DISTANCIA_DETECTA 75     // distancia minima (em cm) para detectar a presença de um corpo 100
 
 //-----filtro do sensor ultrassonico-----:
-#define INTERVALO_MEDIA_HCSR04 25     // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_HCSR04 10    // numero de valores para efetuar a media
 #define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado
 
 //Sobre a visão computacional:
-#define FATOR_ANGULO_VISAO 4    //numero que será multiplicado ao angulo de visão recebido
+#define FATOR_ANGULO_VISAO 3   //numero que será multiplicado ao angulo de visão recebido
 //-----filtro da visão compitacional -----:
-#define INTERVALO_MEDIA_VISAO 8     // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_VISAO 10     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
 
-#define INTERVALO_MEDIA_OFFSET 20     // numero de valores para efetuar a media
+#define INTERVALO_MEDIA_OFFSET 10     // numero de valores para efetuar a media
 #define NUMERO_FILTROS_OFFSET 1    // numero de filtros que será aplicado
 
 //Sobre o MPU6050:
@@ -159,6 +160,9 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define INTERVALO_MEDIA_GIRO 20
 #define NUMERO_FILTROS_GIRO 1
 
+#define INICIO_DA_CURVA 7
+#define INICIO_DA_CURVA_NEG -7
+
 //-----------------------------------------------------------------------------
 // VARIAVEIS GLOBAIS
 
@@ -167,6 +171,7 @@ int auto_estado = 3;    // variavel que controla os casos do switch case do modo
 int remoto_estado = 1;  // variavel que controla os casos do switch case do modo de controle remoto
 
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
+int agr_vai;
 
 double zero = 0;
 double pwm = PWM_MAXIMO;
@@ -214,17 +219,19 @@ double offset_double, offset_antigo;
 double angulo_offset;
 #endif //EXIST_VISAO
 
-bool trava_curva_direita = true;
-bool trava_curva_esquerda = true;
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool obstaculo_1 = false; // armazena a indicação de obstaculo no caminho do sensor 1
 bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do sensor 2
 bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
+bool dist_grande = false;
 bool trava_gyro = false;  // trava para offset do gyroscopio
 bool trava_chao = true; // trava para offset do gyroscopio
 bool trava_pid_vel = false;
 bool trava_pid_offset = false;
+bool trava_ultrasson = false;
+
 bool trava_teste_reta = false;
+bool trava_curva_saida = true;
 
 bool detec_curva = false;
 
@@ -391,7 +398,7 @@ Contador_tempo time_offset(TIME_OFFSET);
 Contador_tempo time_print(10); //itervalo de tempo para printar
 Contador_tempo time_fofo(1000); 
 Contador_tempo time_servo(100);
-Contador_tempo time_curva_e(7500);
+Contador_tempo time_curva_e(7500); //7500
 Contador_tempo time_curva_d(9500);
 
 
@@ -446,8 +453,19 @@ class Sensor_ultrassonico {
    digitalWrite(pin_trig, HIGH);
    delayMicroseconds(10);
    digitalWrite(pin_trig, LOW);
-   tempoEcho = pulseIn(pin_echo, HIGH);
-   dist = ((tempoEcho*velocidadeSom)/2)*100;
+
+  unsigned long timeout = 20000;  // Tempo máximo de espera
+  tempoEcho = pulseIn(pin_echo, HIGH, timeout); // Mede o tempo de eco com timeout
+  if(tempoEcho == 0) {
+    // Se pulseIn atingir o timeout, defina a distância como um valor grande (por exemplo, 9999)
+    dist_grande = true;
+  }else{
+    dist = (tempoEcho * velocidadeSom) / 2 * 100;
+    dist_grande = false;
+  }
+
+  //  tempoEcho = pulseIn(pin_echo, HIGH);
+  //  dist = ((tempoEcho*velocidadeSom)/2)*100;
    interrupts();
    return dist;
  }
@@ -784,18 +802,18 @@ void setup() {
 
 
   #if EXIST_PID_VEL 
-  PID_VEL_D_PWM.SetSampleTime(200);
-  PID_VEL_E_PWM.SetSampleTime(200);
+  PID_VEL_D_PWM.SetSampleTime(50);
+  PID_VEL_E_PWM.SetSampleTime(50);
   PID_VEL_D_PWM.SetOutputLimits(0, 255);
   PID_VEL_E_PWM.SetOutputLimits(0, 255);
-  PID_VEL_D_PWM.SetMode(AUTOMATIC);
-  PID_VEL_E_PWM.SetMode(AUTOMATIC);
+  // PID_VEL_D_PWM.SetMode(AUTOMATIC);
+  // PID_VEL_E_PWM.SetMode(AUTOMATIC);
   #endif //EXIST_PID_VEL
 
   #if EXIST_PID_OFFSET
   PID_OFFSET.SetOutputLimits(intervalo_minimo, intervalo_maximo);
-  PID_OFFSET.SetSampleTime(10); //150 valor que estava
-  PID_OFFSET.SetMode(AUTOMATIC);
+  PID_OFFSET.SetSampleTime(TEMPO_PID_OFFSET); //150 valor que estava
+  // PID_OFFSET.SetMode(AUTOMATIC);
   #endif //EXIST_PID_OFFSET
 
 }

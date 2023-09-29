@@ -84,8 +84,13 @@ void Prints(){
   dados_print_PC += " ";
   dados_print_PC += String(detec_esquerda); // informa a deteção do utrass. da esquerda (detectado = 1, não detectado = 0)
   dados_print_PC += " ";
-  dados_print_PC += String(distancia_1f); // distancia medida pelo ultrass. do meio em (cm)
-  dados_print_PC += " ";
+  if(dist_grande){
+    dados_print_PC += "----"; // distancia medida pelo ultrass. do meio em (cm)
+    dados_print_PC += " ";
+  }else{
+    dados_print_PC += String(distancia_1f); // distancia medida pelo ultrass. do meio em (cm)
+    dados_print_PC += " ";
+  }
   dados_print_PC += String(distancia_2f); // distancia medida pelo ultrass. da direita em (cm)
   dados_print_PC += " ";
   dados_print_PC += String(distancia_3f); // distancia medida pelo ultrass. daesquerda em (cm)
@@ -96,30 +101,29 @@ void Prints(){
   #if EXIST_AJUSTE_GRAFICO
   dados_print_PC += String(0); 
   dados_print_PC += "\t";
-  // dados_print_PC += String(vel_max_d); 
+  dados_print_PC += String(vel_max_d); 
+  dados_print_PC += "\t";
+  dados_print_PC += String(vel_max_e); 
+  dados_print_PC += "\t";    
+  // dados_print_PC += String(80);
   // dados_print_PC += "\t";
-  // dados_print_PC += String(vel_max_e); 
-  // dados_print_PC += "\t";    
-  // dados_print_PC += String(0);
-  // dados_print_PC += "\t";
-  // dados_print_PC += String(0);
+  // dados_print_PC += String(-80);
   // dados_print_PC += "\t";
   #endif // EXIST_AJUSTE_GRAFICO
 
   dados_print_PC += String(angulo_teste); // angulo recebido pela visão [-90,90]
   dados_print_PC += " ";  
-  dados_print_PC += String(angulo_teste_2); // angulo recebido pela visão [-90,90]
+  dados_print_PC += String(esquerda); // angulo recebido pela visão [-90,90]
+  dados_print_PC += " ";  
+  dados_print_PC += String(direita); // angulo recebido pela visão [-90,90]
   dados_print_PC += " "; 
-  // dados_print_PC += "|"; 
-  // dados_print_PC += String(offset); // Valor de offset dado pela visão [-200,200] negativo = defazagem para esquerda
-  // dados_print_PC += " "; 
-  // dados_print_PC += String(angulo_offset); // angulo acrescentado ao angulo que vai ao servo
-  // dados_print_PC += " ";
-  // dados_print_PC += "|"; 
-  // dados_print_PC += String(esquerda); // angulo recebido pela visão [-90,90]
-  // dados_print_PC += " ";  
-  // dados_print_PC += String(direita); // angulo recebido pela visão [-90,90]
-  // dados_print_PC += " "; 
+  dados_print_PC += "|"; 
+  dados_print_PC += String(offset); // Valor de offset dado pela visão [-200,200] negativo = defazagem para esquerda
+  dados_print_PC += " "; 
+  dados_print_PC += String(agr_vai); // fator acrescentado ao angulo que vai ao servo
+  dados_print_PC += " ";
+  dados_print_PC += "|"; 
+
   
   
   if(time_print.atingiu_tempo()){

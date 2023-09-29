@@ -5,14 +5,16 @@ void  Visao_computacional(){
   if(Serial.available()){
     delay(10);
     dados_visao = Serial.readStringUntil('\n');
-    sscanf(dados_visao.c_str(), "%d,%d,%d,%d", &angulo_visao, &esquerda, &direita, &offset);
+    // sscanf(dados_visao.c_str(), "%d,%d,%d,%d,%d", &angulo_visao, &esquerda, &direita, &offset, &agr_vai);
+    sscanf(dados_visao.c_str(), "%d",&agr_vai);
 
     //utilizado para printar os valores recebidos pela visão
     angulo_teste = angulo_visao;
     offset_teste = offset;
-    
+    agr_vai = agr_vai;
+
     //manter apenas o offset na reta
-    if(abs(angulo_visao) <= 2){angulo_visao = 0;}
+    if(abs(angulo_visao) <= 3){angulo_visao = 0;}
   
     //garantir que não tera picos de angulos fora do intervalo [-90,90]
     if(abs(angulo_visao) > 90){angulo_visao = angulo_visao_antigo;} 
@@ -72,8 +74,10 @@ void visao_controle(){
 
   //OFFSET COM PID
   #if EXIST_PID_OFFSET
-  PID_OFFSET.SetControllerDirection(REVERSE);
-  
+  // PID_OFFSET.SetControllerDirection(REVERSE);
+  // PID_OFFSET.SetMode(AUTOMATIC);
+  // trava_pid_offset = true;
+
   if(abs(angulo_visao) > 5){ 
     //desligando o offset
     PID_OFFSET.SetMode(MANUAL);
@@ -103,7 +107,7 @@ void visao_controle(){
   }else{angulo_offset = 0;} 
  
   //zera o offset caso uma curva seja detectada
-  if(abs(angulo_visao) > 5){angulo_offset = 0;}
+  if(abs(angulo_visao) >= 5){angulo_offset = 0;}
 
   // filtro para n deixar o angulo offset sair do intervalo de angulo maximo e minimo
   if(angulo_offset > intervalo_maximo){angulo_offset = intervalo_maximo;}
@@ -115,10 +119,13 @@ void visao_controle(){
   //**************************************************************//
   
   // redundancia para desligar o offset no inicio da curva
-  if(abs(angulo_visao) > 4){angulo_offset = 0;}
+  if(abs(angulo_visao) > 5){angulo_offset = 0;}
 
   // aplicação do angulo do offset no servo para retas 
-  angulo_visao_real = angulo_visao_real + angulo_offset;
+  // angulo_visao_real = angulo_visao_real + angulo_offset;
+  
+  angulo_visao_real = agr_vai + angulo_zero;
+  
 
   // filtro de segurança para garantir que o angulo não ultrapasse os valores max e min
   if(angulo_visao_real < angulo_minimo){
@@ -126,23 +133,13 @@ void visao_controle(){
   }else if(angulo_visao_real > angulo_maximo){
     angulo_visao_real = angulo_maximo;
   } 
-
+  
   // armazenando os dados para print
   angulo_servo = angulo_visao_real;
- 
-  //faz o carro ficar reto quando sair de uma curva
-  // if(abs(angulo_visao) <= 5){
-  //   if(detec_curva){
-  //     angulo_visao_real = ANGULO_INICIAL;
-  //     if(time_curva.atingiu_tempo()){detec_curva = false;}
-  //   }
-  // }
-
-  if(trava_teste_reta){angulo_visao_real = ANGULO_INICIAL;}
-
   angulo_teste_2 = angulo_visao_real;
-  if(time_servo.atingiu_tempo()){servo.colocar_angulo(angulo_visao_real);}
-  // servo.colocar_angulo(angulo_visao_real);
+
+  // if(time_servo.atingiu_tempo()){servo.colocar_angulo(angulo_visao_real);}
+  servo.colocar_angulo(angulo_visao_real);
   
 }
 #endif //EXIST_VISAO
