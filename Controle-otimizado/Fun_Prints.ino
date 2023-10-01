@@ -33,30 +33,19 @@ void Prints(){
   #endif // EXIST_ENCODER_DADOS
 
   #if EXIST_VISAO_DADOS
-  #if EXIST_OFFSET_DADOS
-  dados_print_PC += String(offset_double); // Valor de offset dado pela visão [-200,200] negativo = defazagem para esquerda
-  dados_print_PC += " ";  
-  dados_print_PC += String(angulo_offset); // angulo acrescentado ao angulo que vai ao servo
+  dados_print_PC += String(angulo_offset); // angulo recebido pela visão [-90,90]
+  dados_print_PC += " ";
+  dados_print_PC += String( angulo_visao_f); // angulo recebido pela visão [-90,90] com filtro
+  dados_print_PC += " ";
+  dados_print_PC += String(angulo_visao_real); // angulo que o servo recebe da visão
   dados_print_PC += " ";
   dados_print_PC += "| ";
-  #endif //EXIST_OFFSET_DADOS
-  #if EXIST_VISAO_ANGULO_DADOS
-  dados_print_PC += String(angulo_teste); // angulo recebido pela visão [-90,90]
-  dados_print_PC += " ";  
-  dados_print_PC += String(angulo_visao_f); // angulo recebido pela visão com fator,  filtrado e com trava para variação longa
-  dados_print_PC += " ";  
-  dados_print_PC += String(angulo_visao_real - angulo_offset); // angulo real que será utilizado pelo servo (sem a tara) [angulo min, angulo max] 
-  dados_print_PC += " ";
-  #endif // EXIST_VISAO_ANGULO_DADOS  angulo_teste;
-  dados_print_PC += "| ";
-  #endif // EXIST_VISAO_DADOS
+  #endif // EXIST_VISAO_DADOS 
 
   #if EXIST_SERVO_DADOS
   dados_print_PC += String(angulo_servo); // angulo real que o servo utilizará [angulo min, angulo max] com offset
   dados_print_PC += " ";
-  dados_print_PC += String(angulo_servo - angulo_zero); // angulo real que do servo sem offset
-  dados_print_PC += " ";
-  dados_print_PC += String(angulo_servo - angulo_offset); // angulo do servo com "tara" [-90,90]
+  dados_print_PC += String(angulo_servo - angulo_zero); // angulo servo co tara 
   dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_SERVO_DADOS  
@@ -80,10 +69,10 @@ void Prints(){
   #if EXIST_ULTRA_DADOS
   dados_print_PC += String(detec_meio); // informa a deteção do utrass. do meio (detectado = 1, não detectado = 0)
   dados_print_PC += " ";
-  dados_print_PC += String(detec_direita); // informa a deteção do utrass. da direita (detectado = 1, não detectado = 0)
-  dados_print_PC += " ";
-  dados_print_PC += String(detec_esquerda); // informa a deteção do utrass. da esquerda (detectado = 1, não detectado = 0)
-  dados_print_PC += " ";
+  // dados_print_PC += String(detec_direita); // informa a deteção do utrass. da direita (detectado = 1, não detectado = 0)
+  // dados_print_PC += " ";
+  // dados_print_PC += String(detec_esquerda); // informa a deteção do utrass. da esquerda (detectado = 1, não detectado = 0)
+  // dados_print_PC += " ";
   if(dist_grande){
     dados_print_PC += "----"; // distancia medida pelo ultrass. do meio em (cm)
     dados_print_PC += " ";
@@ -91,10 +80,10 @@ void Prints(){
     dados_print_PC += String(distancia_1f); // distancia medida pelo ultrass. do meio em (cm)
     dados_print_PC += " ";
   }
-  dados_print_PC += String(distancia_2f); // distancia medida pelo ultrass. da direita em (cm)
-  dados_print_PC += " ";
-  dados_print_PC += String(distancia_3f); // distancia medida pelo ultrass. daesquerda em (cm)
-  dados_print_PC += " ";
+  // dados_print_PC += String(distancia_2f); // distancia medida pelo ultrass. da direita em (cm)
+  // dados_print_PC += " ";
+  // dados_print_PC += String(distancia_3f); // distancia medida pelo ultrass. daesquerda em (cm)
+  // dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_ULTRA_DADOS
 
@@ -110,25 +99,10 @@ void Prints(){
   // dados_print_PC += String(-80);
   // dados_print_PC += "\t";
   #endif // EXIST_AJUSTE_GRAFICO
-
-  dados_print_PC += String(angulo_teste); // angulo recebido pela visão [-90,90]
-  dados_print_PC += " ";  
-  dados_print_PC += String(esquerda); // angulo recebido pela visão [-90,90]
-  dados_print_PC += " ";  
-  dados_print_PC += String(direita); // angulo recebido pela visão [-90,90]
-  dados_print_PC += " "; 
-  dados_print_PC += "|"; 
-  dados_print_PC += String(offset); // Valor de offset dado pela visão [-200,200] negativo = defazagem para esquerda
-  dados_print_PC += " "; 
-  dados_print_PC += String(agr_vai); // fator acrescentado ao angulo que vai ao servo
-  dados_print_PC += " ";
-  dados_print_PC += "|"; 
-
-  
   
   if(time_print.atingiu_tempo()){
-  // Serial.println(dados_print_PC);
-  Serial2.println(dados_print_PC);
+    // Serial.println(dados_print_PC);
+    Serial2.println(dados_print_PC);
   }
   #endif // EXIST_DADOS
   

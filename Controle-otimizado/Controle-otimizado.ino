@@ -16,27 +16,22 @@
 #define EXIST_PID 1     // existencia de PID 
 #define EXIST_PID_VEL (EXIST_PID && 1)
 #define EXIST_NPID_VEL (!EXIST_PID_VEL)
-#define EXIST_PID_OFFSET (EXIST_PID && 1)
-#define EXIST_NPID_OFFSET (!EXIST_PID_OFFSET && 0)
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
-#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    // existencia de filtro nos dados do angulo da visão computacional
-#define EXIST_OFFSET_FILTRO (EXIST_FILTRO && EXIST_VISAO && 1)    //existencia de filtro nos dados do offet da visão computacional
-#define EXIST_VISAO_DADOS (EXIST_VISAO && 0)    // existencia dos dados da visão para print
-#define EXIST_VISAO_ANGULO_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
-#define EXIST_OFFSET_DADOS (EXIST_VISAO_DADOS && 1)    // existencia dos dados da visão para print
+#define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    // existencia de filtro nos dados do angulo da visão computacional
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
 
-#define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc PWM
+#define EXIST_MOTOR_DC_DADOS 1 // existencia dos motores dc PWM
 
 #define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_ENCODER_DADOS 0   // existencia dos dados do encoder para print
+#define EXIST_ENCODER_DADOS 1   // existencia dos dados do encoder para print
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
 
 #define EXIST_ULTRA 0  // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 1) // existencia do filtro para o sensor ultrassonico
@@ -99,7 +94,6 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 
 #define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem (em milisegundos)
 #define TIME_ACELERA_FOFO 0.1     // intervalo de tempo para alterar o pwm durante a aceleraçao de arranque do carro (em milisegundos)
-#define TIME_OFFSET 10     // intervalo de tempo para alterar o angulo do offset 
 
 //-----filtro do encoder-----:
 #define INTERVALO_MEDIA_ENCODER 50   // numero de valores para efetuar a media
@@ -107,8 +101,8 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 
 //PID cruzeiro:
 #define KP_MC 400  //bom = 180   400
-#define KI_MC 400 //bom = 110    400
-#define KD_MC 20  //bom = 5    20
+#define KI_MC 410 //bom = 110    410
+#define KD_MC 8  //bom = 5    8
 
 //PID curava:
 #define KP_MCU 400  //bom = 
@@ -120,11 +114,9 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define KI_MFF 950   //bom = 
 #define KD_MFF 5     //bom = 
 
-//PID OFFSET:
-#define KP_OFF 0.6    // bom = 0.2
-#define KI_OFF 0.9   // bom =  0.3  
-#define KD_OFF 0     //0
-#define TEMPO_PID_OFFSET 200  
+//-----filtro da visão-----:
+#define INTERVALO_MEDIA_VISAO 8  // media para tarar os angulos do giroscopio
+#define NUMERO_FILTROS_VISAO 1 
 
 //Sobre os servos:
 #define ANGULO_INICIAL 80   // angulo real inicial do servo para quando ligar o carro
@@ -140,16 +132,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 
 //-----filtro do sensor ultrassonico-----:
 #define INTERVALO_MEDIA_HCSR04 10    // numero de valores para efetuar a media
-#define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado
-
-//Sobre a visão computacional:
-#define FATOR_ANGULO_VISAO 3   //numero que será multiplicado ao angulo de visão recebido
-//-----filtro da visão compitacional -----:
-#define INTERVALO_MEDIA_VISAO 10     // numero de valores para efetuar a media
-#define NUMERO_FILTROS_VISAO 1    // numero de filtros que será aplicado
-
-#define INTERVALO_MEDIA_OFFSET 10     // numero de valores para efetuar a media
-#define NUMERO_FILTROS_OFFSET 1    // numero de filtros que será aplicado
+#define NUMERO_FILTROS_HCSR04 1     // numero de filtros que será aplicado   
 
 //Sobre o MPU6050:
 #define MEDIA_PARA_GIRO 3000      // media para tarar os angulos do giroscopio
@@ -171,7 +154,6 @@ int auto_estado = 3;    // variavel que controla os casos do switch case do modo
 int remoto_estado = 1;  // variavel que controla os casos do switch case do modo de controle remoto
 
 int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
-int agr_vai;
 
 double zero = 0;
 double pwm = PWM_MAXIMO;
@@ -188,35 +170,20 @@ double kp_me = KP_MC;
 double ki_me = KI_MC;
 double kd_me = KD_MC;
 
-double kp_off = KP_OFF;
-double ki_off = KI_OFF;
-double kd_off = KD_OFF;
-
 double angulo_z_f, angulo_z_f_ant;
 double angulo_x_f;
-
-int offset_teste;
-
 
 int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
 int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
 int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
 int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
-int intervalo_maximo = angulo_maximo - angulo_zero;
-int intervalo_minimo = angulo_minimo - angulo_zero;
 
-int angulo_teste, angulo_teste_2, trava_reto;
-
-int detec_meio;
-int detec_direita;
-int detec_esquerda;
 
 #if EXIST_VISAO
 int angulo_visao, angulo_visao_real, angulo_visao_f, angulo_visao_antigo; // armazena o angulo dado pela visão computacional
 int esquerda, direita;
 int offset;
-double offset_double, offset_antigo;
-double angulo_offset;
+int angulo_offset;
 #endif //EXIST_VISAO
 
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
@@ -227,11 +194,7 @@ bool dist_grande = false;
 bool trava_gyro = false;  // trava para offset do gyroscopio
 bool trava_chao = true; // trava para offset do gyroscopio
 bool trava_pid_vel = false;
-bool trava_pid_offset = false;
 bool trava_ultrasson = false;
-
-bool trava_teste_reta = false;
-bool trava_curva_saida = true;
 
 bool detec_curva = false;
 
@@ -394,12 +357,9 @@ Contador_tempo time_frenagem_fofo_d(TIME_FRENAGEM_FOFO);
 Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
-Contador_tempo time_offset(TIME_OFFSET);
-Contador_tempo time_print(10); //itervalo de tempo para printar
-Contador_tempo time_fofo(1000); 
-Contador_tempo time_servo(100);
-Contador_tempo time_curva_e(7500); //7500
-Contador_tempo time_curva_d(9500);
+
+Contador_tempo time_print(10);  //itervalo de tempo para printar 
+Contador_tempo time_servo(50);
 
 
 
@@ -458,6 +418,7 @@ class Sensor_ultrassonico {
   tempoEcho = pulseIn(pin_echo, HIGH, timeout); // Mede o tempo de eco com timeout
   if(tempoEcho == 0) {
     // Se pulseIn atingir o timeout, defina a distância como um valor grande (por exemplo, 9999)
+    dist = 9999;
     dist_grande = true;
   }else{
     dist = (tempoEcho * velocidadeSom) / 2 * 100;
@@ -564,9 +525,6 @@ Filtro Filtro_VEL_E(INTERVALO_MEDIA_ENCODER, NUMERO_FILTROS_ENCODER);
 #if EXIST_VISAO_FILTRO
 Filtro Filtro_visao(INTERVALO_MEDIA_VISAO, NUMERO_FILTROS_VISAO);
 #endif // EXIST_VISAO_FILTRO
-#if EXIST_OFFSET_FILTRO
-Filtro Filtro_offset(INTERVALO_MEDIA_OFFSET, NUMERO_FILTROS_OFFSET);
-#endif // EXIST_OFFSET_FILTRO
 
 #if EXIST_ULTRA_FILTRO
 Filtro Filtro_HCSR04_1(INTERVALO_MEDIA_HCSR04, NUMERO_FILTROS_HCSR04);
@@ -802,8 +760,8 @@ void setup() {
 
 
   #if EXIST_PID_VEL 
-  PID_VEL_D_PWM.SetSampleTime(50);
-  PID_VEL_E_PWM.SetSampleTime(50);
+  PID_VEL_D_PWM.SetSampleTime(100); //50
+  PID_VEL_E_PWM.SetSampleTime(100); //50
   PID_VEL_D_PWM.SetOutputLimits(0, 255);
   PID_VEL_E_PWM.SetOutputLimits(0, 255);
   // PID_VEL_D_PWM.SetMode(AUTOMATIC);

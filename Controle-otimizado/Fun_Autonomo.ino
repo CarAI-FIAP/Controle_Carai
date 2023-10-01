@@ -14,12 +14,6 @@ void Autonomo(){
     msg_blue = HC06.read();
 
    if(msg_blue == 'C'){ 
-      #if EXIST_PID_OFFSET
-      //desligando o PID do offset
-      PID_OFFSET.SetMode(MANUAL);
-      trava_pid_offset = false;
-      #endif //EXIST_PID_OFFSET
-      angulo_offset = 0; 
 
       motor_direito.para();
       motor_esquerdo.para();
@@ -44,17 +38,11 @@ void Autonomo(){
 
     }else if(msg_blue == 'D'){
       // freia fofo
-      #if EXIST_PID_OFFSET
-      //desligando o PID do offset
-      PID_OFFSET.SetMode(MANUAL);
-      trava_pid_offset = false;
-      #endif //EXIST_PID_OFFSET
       trava_ultrasson = false;
       auto_estado = 2; // vai para o case que freia fofo
 
     }else if(msg_blue == 'F'){
       //alinha o servo
-      angulo_offset = 0;
       auto_estado = 0;
 
     }
@@ -68,46 +56,18 @@ void Autonomo(){
       PID_VEL_D_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
       PID_VEL_E_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
       #endif //#if EXIST_PID_VEL
-
       //define os valores de velocidade 
       vel_max_d = VEL_MAX;
       vel_max_e = VEL_MAX;
       vel_max = VEL_MAX;
-      
-      // // regular a velocidade das rodas para curvas:
-      // if(angulo_visao > 7){
-      //   // ** curva para esquerda **
-      //   #if EXIST_PID_VEL
-      //   // // parametros de PID para uma curva fofa
-      //   // PID_VEL_D_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
-      //   // PID_VEL_E_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
-      //   #endif //#if EXIST_PID_VEL
-      //   vel_max_d = VEL_MAX + 0.2;
-      //   vel_max_e = VEL_MAX - 0.2;
 
-      // }else if(angulo_visao < -7){
-      //   // ** curva para direita **
-      //   #if EXIST_PID_VEL
-      //    // // parametros de PID para uma curva fofa
-      //    // PID_VEL_D_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
-      //    // PID_VEL_E_PWM.SetTunings(KP_MCU, KI_MCU, KD_MCU);
-      //   #endif //#if EXIST_PID_VEL
-
-      //   vel_max_d = VEL_MAX - 0.2;
-      //   vel_max_e = VEL_MAX + 0.2;
-
-      // }else{
-      //   #if EXIST_PID_VEL 
-      //   // parametros de PID para andar fofo
-      //   PID_VEL_D_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
-      //   PID_VEL_E_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
-      //   #endif //#if EXIST_PID_VEL
-
-      //   //define os valores de velocidade 
-      //   vel_max_d = VEL_MAX;
-      //   vel_max_e = VEL_MAX;
-      //   vel_max = VEL_MAX;
-      // }
+      if(angulo_offset > 40){ //40
+        vel_max_d = VEL_MAX +0.2;
+        vel_max_e = VEL_MAX-0.2;
+      }else if(angulo_offset < -40){ //40
+        vel_max_d = VEL_MAX -0.2;
+        vel_max_e = VEL_MAX+0.2;
+      }
 
       Andar();
       visao_controle();
@@ -117,7 +77,7 @@ void Autonomo(){
     case 2:
       // **freiar fofo com PID**
       #if EXIST_PID_VEL 
-      // // parametros de PID para uma curva fofa
+      // // parametros de PID para uma frenagem fofa
       PID_VEL_D_PWM.SetTunings(KP_MFF, KI_MFF, KD_MFF);
       PID_VEL_E_PWM.SetTunings(KP_MFF, KI_MFF, KD_MFF);
       #endif //#if EXIST_PID_VEL 
@@ -128,8 +88,6 @@ void Autonomo(){
     //------------------------------------------------------
     case 3: 
     //espaço reservado para baliza do carro
-
-    
     break;
   
     //------------------------------------------------------

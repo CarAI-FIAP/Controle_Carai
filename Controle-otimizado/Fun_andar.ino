@@ -10,25 +10,11 @@ void Andar(){
   #endif //EXIST_PID_VEL 
     
   #if EXIST_NPID_VEL
-  if(vel_md_f < vel_max ){
-    pwm_d++; 
-    if(pwm_d > 255){pwm_d = 255;}
+    pwm_d = 150;
+    pwm_e = 150;
     motor_direito.frente(pwm_d);
-  }else if(vel_md_f > vel_max){
-    pwm_d--;
-    if(pwm_d < 0){pwm_d = 0;}
-    motor_direito.frente(pwm_d);
-  }
-
-  if(vel_me_f < vel_max){
-    pwm_e++; 
-    if(pwm_e > 255){pwm_e = 255;}
     motor_esquerdo.frente(pwm_e);
-  }else if(vel_me_f > vel_max){
-    pwm_e--; 
-    if(pwm_e < 0){pwm_e = 0;}
-    motor_esquerdo.frente(pwm_e);
-  }
+}
   #endif //EXIST_NPID_VEL
 }
 //----------------------------------------------------------------------------------------------
@@ -63,7 +49,7 @@ void Frenagem_fofo(){
 
   int paradoo = 0;
   paradoo = parado_d + parado_e;
-  
+
   if(paradoo = 2){trava_ultrasson = true;}
    
   #endif //EXIST_PID_VEL 
