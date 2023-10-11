@@ -11,11 +11,14 @@ void Controle_remoto(){
     msg_blue = HC06.read();
     if(msg_blue == 'E'){
       // andar 
+      farol_traseiro.apagar(); //acender os farois de freio
       trava_ultrasson = true;
       remoto_estado = 1;
 
     }else if(msg_blue == 'D'){
       // frenagem fofo
+      seta_direita.acender();
+      seta_esquerda.acender();
       trava_ultrasson = false;
       remoto_estado = 2;
 
@@ -24,6 +27,12 @@ void Controle_remoto(){
        remoto_estado = 3;
 
     }else if(msg_blue == 'C'){
+      // volta para o menu
+      seta_direita.apagar();
+      seta_esquerda.apagar();
+      farol_traseiro.acender();
+      farol_frente.apagar(); //acender os farois da frente
+      
       motor_direito.para();
       motor_esquerdo.para();
       trava_ultrasson = false;
@@ -50,6 +59,7 @@ void Controle_remoto(){
 
   switch (remoto_estado){
     case 1:
+      farol_traseiro.apagar();
       #if EXIST_PID_VEL 
       PID_VEL_D_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
       PID_VEL_E_PWM.SetTunings(kp_mc, ki_mc, kd_mc);
@@ -58,18 +68,34 @@ void Controle_remoto(){
       vel_max_e = VEL_MAX;
       vel_max = VEL_MAX;
 
-      // if(angulo_servo < 80){
-      // vel_max_d = VEL_MAX + 0.2;
-      // vel_max_e = VEL_MAX - 0.2;        
-      // }
+      // if(angulo_servo < ANGULO_ZERO +40){
+      //   vel_max_d = VEL_MAX + 0.2;
+      //   vel_max_e = VEL_MAX - 0.2;
+
+      // } else if(angulo_servo > ANGULO_ZERO -40){
+      //   vel_max_d = VEL_MAX + 0.2;
+      //   vel_max_e = VEL_MAX - 0.2;        
+      // } 
+
+      if(angulo_servo < ANGULO_ZERO -40){
+        // ligar seta da direita
+        seta_direita.piscar(500);
+      }else{seta_direita.acender();}
+
+      if(angulo_servo > ANGULO_ZERO +40){
+        //ligar seta da esquerda
+        seta_esquerda.piscar(500);
+      }else{seta_esquerda.acender();}
+      
       Andar();
     break;
 
     case 2:
-    #if EXIST_PID_VEL 
+      farol_traseiro.acender(); // acende o farol de freio
+      #if EXIST_PID_VEL 
       PID_VEL_D_PWM.SetTunings(KP_MFF, KI_MFF, KD_MFF);
       PID_VEL_E_PWM.SetTunings(KP_MFF, KI_MFF, KD_MFF);
-    #endif
+      #endif
       Frenagem_fofo();
     break;
 

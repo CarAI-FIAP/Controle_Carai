@@ -72,10 +72,7 @@ void Ajuste_servo_manual(){
   servo.colocar_angulo(angulo_servo);
   #endif 
 }
-
-
-
-
+  
 
 
 

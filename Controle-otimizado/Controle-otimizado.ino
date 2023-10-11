@@ -21,61 +21,66 @@
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    // existencia de filtro nos dados do angulo da visão computacional
 #define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
 
-#define EXIST_MOTOR_DC_DADOS 1 // existencia dos motores dc PWM
+#define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc PWM
 
 #define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_ENCODER_DADOS 1   // existencia dos dados do encoder para print
+#define EXIST_ENCODER_DADOS 0   // existencia dos dados do encoder para print
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
 
-#define EXIST_ULTRA 0  // existencia do sensor ultrassonico
-#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 1) // existencia do filtro para o sensor ultrassonico
-#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico do meio
+#define EXIST_ULTRA 0 // existencia do sensor ultrassonico
+#define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
+#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)   // existencia do sensor ultrassonico do meio
 #define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da direita
 #define EXIST_ULTRA_ESQUERDA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da esquerda
 #define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)  // existencia dos dados do sensor ultrassonico para print
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
-#define EXIST_INFRA_DADOS (EXIST_INFRA && 1)
+#define EXIST_INFRA_DADOS (EXIST_INFRA && 1)   // existencia dos dados do infra vermelho 
 
 #define EXIST_SWITCH_DADOS (EXIST_DADOS && 1)   // existencia dos dados do menu para print
-#define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)
+#define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)  // existencia dos ajustes de grafico
 
 
 //------------------------------------------------------------------------------
 // DEFININDO PINOS DO ARDUINO:
 
 // Pinos do motor:
-#define PIN_MD1 10   // pino 1 de controle do motor direito (dominante)
-#define PIN_MD2 9   // pino 2 de controle do motor direito
-#define PIN_ME1 12     // pino 1 de controle do motor esquerdo (dominante)
-#define PIN_ME2 11       // pino 2 de controle do motor esquerdo
+#define PIN_MD1 12   // pino 1 de controle do motor direito (dominante) 10
+#define PIN_MD2 11   // pino 2 de controle do motor direito 9
+#define PIN_ME1 10     // pino 1 de controle do motor esquerdo (dominante) 12
+#define PIN_ME2 9       // pino 2 de controle do motor esquerdo 11
 
 // Pinos dos encoders:
-#define PIN_EN_DA 18     // pino A de controle do enconder dieito para arduino MEGA 18
-#define PIN_EN_DB 19     // pino B de controle do enconder dieito para arduino MEGA 19
-#define PIN_EN_EA 2     // pino A de controle do enconder esquerdo para arduino MEGA
-#define PIN_EN_EB 3    // pino B de controle do enconder esquerdo para arduino MEGA
+#define PIN_EN_DA 2      // pino A de controle do enconder dieito para arduino MEGA 18
+#define PIN_EN_DB 3     // pino B de controle do enconder dieito para arduino MEGA 19
+#define PIN_EN_EA 18     // pino A de controle do enconder esquerdo para arduino MEGA 2
+#define PIN_EN_EB 19    // pino B de controle do enconder esquerdo para arduino MEGA 3
 
 // Pino do servo:
 #define PIN_SERVO 8    // pino de controle do servo motor 8
 
 // Pinos dos sensores ultrassonicos
-#define PIN_TRIG_1 7     // pino trig do ultrassonico 1 meio
-#define PIN_ECHO_1 6     // pino echo do ultrassonico 1 meio
-#define PIN_TRIG_2 26     // pino trig do ultrassonico 2 direita
-#define PIN_ECHO_2 25     // pino echo do ultrassonico 2 direita
-#define PIN_TRIG_3 28     // pino trig do ultrassonico 3 esquerda
-#define PIN_ECHO_3 27     // pino echo do ultrassonico 3 esquerda
+#define PIN_TRIG_1 29     // pino trig do ultrassonico 1 meio
+#define PIN_ECHO_1 27     // pino echo do ultrassonico 1 meio
+#define PIN_TRIG_2 33     // pino trig do ultrassonico 2 direita
+#define PIN_ECHO_2 31     // pino echo do ultrassonico 2 direita
+#define PIN_TRIG_3 37     // pino trig do ultrassonico 3 esquerda
+#define PIN_ECHO_3 35     // pino echo do ultrassonico 3 esquerda
 
 // Pinos dos sensores infravermelhos
-#define PIN_INFRA_D 46     // pinos do sensor infra direito
-#define PIN_INFRA_E 30     // pinos do sensor infra esquerdo
+#define PIN_INFRA_D 46     // pino do sensor infra direito
+#define PIN_INFRA_E 30     // pino do sensor infra esquerdo
+
+#define PIN_FAROL_F 41  // pino dos farois da frente
+#define PIN_FAROL_T 47 // pino dos farois traseiros
+#define PIN_SETA_D 45  // pino da seta da direita
+#define PIN_SETA_E 43 // pino da seta da esquerda
 
 // Pinos do modulo bluetooth
 SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
@@ -88,35 +93,35 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.3  // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.4  // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
 
-#define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem (em milisegundos)
-#define TIME_ACELERA_FOFO 0.1     // intervalo de tempo para alterar o pwm durante a aceleraçao de arranque do carro (em milisegundos)
+#define TIME_FRENAGEM_FOFO 0.08    // intervalo de tempo para alterar o pwm durante a frenagem (em milisegundos) PARA SEM PID
+#define TIME_ACELERA_FOFO 0.1     // intervalo de tempo para alterar o pwm durante a aceleraçao de arranque do carro (em milisegundos) PARA SEM PID
 
 //-----filtro do encoder-----:
 #define INTERVALO_MEDIA_ENCODER 50   // numero de valores para efetuar a media
 #define NUMERO_FILTROS_ENCODER 1     // numero de filtros que será aplicado
 
 //PID cruzeiro:
-#define KP_MC 400  //bom = 180   400
-#define KI_MC 410 //bom = 110    410
-#define KD_MC 8  //bom = 5    8
+#define KP_MC 400  //bom = 180     exelente = 400
+#define KI_MC 410  //bom = 110     exelente = 410
+#define KD_MC 8    //bom = 5       exelente = 8
 
 //PID curava:
-#define KP_MCU 400  //bom = 
-#define KI_MCU 500  //bom = 
-#define KD_MCU 20   //bom = 
+#define KP_MCU 400  //bom = 400
+#define KI_MCU 500  //bom = 410
+#define KD_MCU 20   //bom = 8
 
 //PID frenagem fofa:
-#define KP_MFF 400   //bom = 
-#define KI_MFF 950   //bom = 
-#define KD_MFF 5     //bom = 
+#define KP_MFF 400   //bom = 400
+#define KI_MFF 950   //bom = 950
+#define KD_MFF 5     //bom = 5
 
 //-----filtro da visão-----:
-#define INTERVALO_MEDIA_VISAO 8  // media para tarar os angulos do giroscopio
-#define NUMERO_FILTROS_VISAO 1 
+#define INTERVALO_MEDIA_VISAO 8  // numero de dados que serão utilizados para media
+#define NUMERO_FILTROS_VISAO 1   // numero de filtros na visão
 
 //Sobre os servos:
 #define ANGULO_INICIAL 80   // angulo real inicial do servo para quando ligar o carro
@@ -146,64 +151,68 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define INICIO_DA_CURVA 7
 #define INICIO_DA_CURVA_NEG -7
 
+//Sobre o ajuste de velocidade nas curvas
+#define ANGULO_CURVA_MAX 60
+#define ANGULO_CURVA_MIN 40
+
 //-----------------------------------------------------------------------------
 // VARIAVEIS GLOBAIS
 
-int switch_case = 1;    // variavel que controla os casos do switch case do menu 
-int auto_estado = 3;    // variavel que controla os casos do switch case do modo autonomo
-int remoto_estado = 1;  // variavel que controla os casos do switch case do modo de controle remoto
+int switch_case = 1;    // variavel que controla os casos do switch case do menu (setado para o modo autonomo)
+int auto_estado = 1;    // variavel que controla os casos do switch case do modo autonomo (setado para andar)
+int remoto_estado = 0;  // variavel que controla os casos do switch case do modo de controle remoto
 
-int estado_motor; // indica por meio de 0 ou 1 se o motor está ligado ou desligado
+int estado_motor;   // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
-double zero = 0;
 double pwm = PWM_MAXIMO;
-double pwm_d = 0; // pwm inicial
-double pwm_e = 0; // pwm inicial
-double pwm_min = PWM_MINIMO; // pwm maximo que o carro irá atingir
-double pwm_max = PWM_MAXIMO; // pwm minimo que o carro precisa para andar
+double pwm_d = 0;     // pwm inicial
+double pwm_e = 0;     // pwm inicial
+double pwm_min = PWM_MINIMO;    // pwm maximo que o carro irá atingir
+double pwm_max = PWM_MAXIMO;   // pwm minimo que o carro precisa para andar
 
-double kp_mc = KP_MC;
-double ki_mc = KI_MC;
-double kd_mc = KD_MC;
+double kp_mc = KP_MC;   // variavel de armazenamento de kp do PID
+double ki_mc = KI_MC;   // variavel de armazenamento de ki do PID
+double kd_mc = KD_MC;   // variavel de armazenamento de kd do PID
 
-double kp_me = KP_MC;
-double ki_me = KI_MC;
-double kd_me = KD_MC;
+double angulo_z_f, angulo_z_f_ant;  // armazenam angulos de inclinação do mpu 
+double angulo_x_f;  // armazenam angulos de giro do mpu
 
-double angulo_z_f, angulo_z_f_ant;
-double angulo_x_f;
-
-int angulo_servo = ANGULO_INICIAL; // armazena o angulo real do servo motor 
-int angulo_zero = ANGULO_ZERO; // armazena apenas o angulo que irá definir o ponto zero 
-int angulo_maximo = ANGULO_MAX; // armazena o angulo real maximo que o servo consegue abrir
-int angulo_minimo = ANGULO_MIN; // armazena o angulo real maximo que o servo consegue abrir
+int angulo_servo = ANGULO_INICIAL;   // armazena o angulo real do servo motor 
+int angulo_zero = ANGULO_ZERO;   // armazena apenas o angulo que irá definir o ponto zero 
+int angulo_maximo = ANGULO_MAX;   // armazena o angulo real maximo que o servo consegue abrir
+int angulo_minimo = ANGULO_MIN;   // armazena o angulo real maximo que o servo consegue abrir
 
 
 #if EXIST_VISAO
 int angulo_visao, angulo_visao_real, angulo_visao_f, angulo_visao_antigo; // armazena o angulo dado pela visão computacional
-int esquerda, direita;
-int offset;
-int angulo_offset;
+int esquerda, direita, angulo_faixa, offset, valor_descartavel;
+int placa_pare,semaforo;
+int angulo_offset;  // angulo oriundo da visão
 #endif //EXIST_VISAO
 
 bool obstaculo = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool obstaculo_1 = false; // armazena a indicação de obstaculo no caminho do sensor 1
 bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do sensor 2
 bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
-bool dist_grande = false;
-bool trava_gyro = false;  // trava para offset do gyroscopio
-bool trava_chao = true; // trava para offset do gyroscopio
-bool trava_pid_vel = false;
-bool trava_ultrasson = false;
+bool dist_grande = false; // trava para evitar que o ultrassonico ocupe muito tempo
+bool trava_ultrasson = true;  // trava para evitar que o ultrassonico pare o carro 
 
-bool detec_curva = false;
+bool trava_placa = true;
+bool trava_semafaro = true;
 
-int dado_infra;
+bool trava_gyro = false;   // trava 1 para resetar o offset do gyroscopio
+bool trava_chao = true;    // trava 2 para calcular o offset do gyroscopio
 
-double vel_max = VEL_MAX;
-double vel_max_d = VEL_MAX;
-double vel_max_e = VEL_MAX;
-double vel_md, vel_md_f, vel_me, vel_me_f; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente
+bool trava_pid_vel = false;  // trava para desligar o PID da velocidade
+
+bool detec_curva = false;  // trava utilizada para detectar curvas
+
+int dado_infra;  // armazena os dados do sensor infravermelho
+
+double vel_max = VEL_MAX;  // armazenam a velocidade maxima (m/s) dos motores 
+double vel_max_d = VEL_MAX;  // armazenam a velocidade maxima (m/s) do motores direito 
+double vel_max_e = VEL_MAX; // armazenam a velocidade maxima (m/s) do motores esquerdo
+double vel_md, vel_md_f, vel_me, vel_me_f; // armazenam a velocidade em (m/s) dos motores direito e esquerdo respectivamente (com e sem filtro)
 double dist_total; // armazenam a distancia total percorrida
 
 String dados_print_HC06 = " ";  // armazena os dados que serão printado no bluetooth
@@ -217,8 +226,8 @@ char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do p
 
 #if EXIST_ULTRA
 const float velocidadeSom = 0.00034029; // velocidade do som em metros/microsegundo
-float distancia_1, distancia_1f, distancia_2, distancia_2f, distancia_3, distancia_3f;
-int detec;
+float distancia_1, distancia_1f, distancia_2, distancia_2f, distancia_3, distancia_3f; // armazenam as distancias medidas pelos sensores
+int detec, detec_meio, detec_direita, detec_esquerda;  // armazena a informação se algum ultrassonico detectou um obstaculo
 #endif // EXIST_ULTRA
 
 #if EXIST_MPU6050
@@ -328,6 +337,52 @@ Motores motor_direito(PIN_MD1, PIN_MD2);
 Motores motor_esquerdo(PIN_ME1, PIN_ME2);
 
 //-----------------------------------------------------------------------------
+// Classe responsavel pelo controle dos leds
+class Leds {
+  int pin_led;
+  unsigned long intervalo;
+  unsigned long ultima_atualizacao;
+  bool trava ;
+
+ public:
+  Leds(int pin_1){
+    pin_led = pin_1;
+    pinMode(pin_led, OUTPUT);  
+    trava = true;
+  }
+
+  void acender() {
+    digitalWrite(pin_led, HIGH);
+  }
+
+  void apagar() {
+    digitalWrite(pin_led, LOW);
+  }
+
+  void piscar(unsigned long intervalo) {
+    unsigned long tempo_atual = millis();
+    if(tempo_atual - ultima_atualizacao >= intervalo){
+      ultima_atualizacao = tempo_atual;
+      if(trava){
+        digitalWrite(pin_led, LOW);
+        trava = false;
+      }else{
+        digitalWrite(pin_led, HIGH);
+        trava = true;
+      }
+
+    }
+  }
+
+};
+
+ Leds farol_frente(PIN_FAROL_F);
+ Leds farol_traseiro(PIN_FAROL_T);
+ Leds seta_direita(PIN_SETA_D);
+ Leds seta_esquerda(PIN_SETA_E);
+
+//-----------------------------------------------------------------------------
+
 // Classe responsavel pela contagem de tempo em millis():
 class Contador_tempo {
   unsigned long intervalo;
@@ -358,9 +413,15 @@ Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 
-Contador_tempo time_print(10);  //itervalo de tempo para printar 
-Contador_tempo time_servo(50);
 
+Contador_tempo time_ultra_meio(200); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
+Contador_tempo time_ultra_direita(100); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
+Contador_tempo time_ultra_esquerda(100); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
+
+Contador_tempo time_print(10);  //itervalo de tempo para printar os dados 
+Contador_tempo time_servo(50);  //itervalo de tempo com que o servo vai computar os dados recebidos quando no modo autonomo. 
+
+Contador_tempo time_andar(1000);  //itervalo de tempo para printar os dados 
 
 
 //-----------------------------------------------------------------------------
@@ -714,26 +775,27 @@ EncoderB encoder_E(PIN_EN_EA, PIN_EN_EB);
 //-----------------------------------------------------------------------------
 // classe para PID
 #if EXIST_PID_VEL 
-PID PID_VEL_D_PWM(&vel_md_f, &pwm_d, &vel_max_d, kp_mc, ki_mc, kd_mc, P_ON_M, DIRECT); //Kp, Ki, Kd
-PID PID_VEL_E_PWM(&vel_me_f, &pwm_e, &vel_max_e, kp_mc, ki_mc, kd_mc, P_ON_M, DIRECT); 
+PID PID_VEL_D_PWM(&vel_md_f, &pwm_d, &vel_max_d, kp_mc, ki_mc, kd_mc, P_ON_M, DIRECT); //Kp, Ki, Kd 
+PID PID_VEL_E_PWM(&vel_me_f, &pwm_e, &vel_max_e, kp_mc, ki_mc, kd_mc, P_ON_M, DIRECT); //Kp, Ki, Kd
 #endif //EXIST_PID_VEL 
 #if EXIST_PID_OFFSET
 PID PID_OFFSET(&offset_double, &angulo_offset, &zero, kp_off, ki_off, kd_off, P_ON_M, DIRECT); 
 #endif //EXIST_PID_OFFSET
 
-
 //***************************************************************************
 void setup() {
 
   #if EXIST_BLUETOOTH
-  switch_case = 0;  // variavel que controla os casos do switch case
-  auto_estado = 0;
-  remoto_estado = 0;
+  switch_case = 0;     // variavel que controla os casos do switch case do menu
+  auto_estado = 0;     // variavel que controla os casos do switch case do modo autonomo
+  trava_ultrasson = false;
+  trava_placa = false;
+  trava_semafaro = false;
   #endif
 
   Serial.begin(9600); // inicializa o monitor serial
   Serial.setTimeout(100);
-  Serial2.begin(57600); // inicializa a comunicação serial do lora
+  Serial2.begin(57600); // inicializa a comunicação serial da telemetria
   HC06.begin(9600); // inicializa o modulo bluetooth HC06
   
   #if EXIST_ENCODER
@@ -758,21 +820,13 @@ void setup() {
   delay(100);
   #endif // EXIST_MPU6050
 
-
   #if EXIST_PID_VEL 
-  PID_VEL_D_PWM.SetSampleTime(100); //50
-  PID_VEL_E_PWM.SetSampleTime(100); //50
-  PID_VEL_D_PWM.SetOutputLimits(0, 255);
-  PID_VEL_E_PWM.SetOutputLimits(0, 255);
-  // PID_VEL_D_PWM.SetMode(AUTOMATIC);
-  // PID_VEL_E_PWM.SetMode(AUTOMATIC);
+  PID_VEL_D_PWM.SetSampleTime(100); //50  tempo de leitura do PID nos motores
+  PID_VEL_E_PWM.SetSampleTime(100); //50  tempo de leitura do PID nos motores
+  PID_VEL_D_PWM.SetOutputLimits(0, 255);  // limites minimo e maximo que o PWM pode atingir
+  PID_VEL_E_PWM.SetOutputLimits(0, 255);   // limites minimo e maximo que o PWM pode atingir
   #endif //EXIST_PID_VEL
-
-  #if EXIST_PID_OFFSET
-  PID_OFFSET.SetOutputLimits(intervalo_minimo, intervalo_maximo);
-  PID_OFFSET.SetSampleTime(TEMPO_PID_OFFSET); //150 valor que estava
-  // PID_OFFSET.SetMode(AUTOMATIC);
-  #endif //EXIST_PID_OFFSET
+  
 
 }
 
@@ -780,72 +834,72 @@ void setup() {
 void loop() {
   
   #if EXIST_VISAO
-  Visao_computacional();
+  Visao_computacional();  // pegar os valores da visão
   #endif // EXIST_VISAO
 
   #if EXIST_ULTRA
-  Distancia_Sensor();
+  Distancia_Sensor();  // pegar a distancia medida pelos sensores
   #endif // EXIST_ULTRA
     
   #if EXIST_ENCODER
-  Encoder_call();
+  Encoder_call();  // pegar as velocidades de cada roda
   #endif // EXIST_ENCODER
   
   #if EXIST_MPU6050
-  if(trava_gyro){Giroscopio();}
+  if(trava_gyro){Giroscopio();}  // pegar os angulos do giroscopio
   #endif // EXIST_MPU6050
   
   #if EXIST_PID_VEL 
-  if(trava_pid_vel){PID_VEL_D_PWM.Compute();PID_VEL_E_PWM.Compute();}
+  if(trava_pid_vel){PID_VEL_D_PWM.Compute();PID_VEL_E_PWM.Compute();} //inicializar o PID dos motores 
   #endif //EXIST_PID_VEL 
-
-  #if EXIST_PID_OFFSET
-  if(trava_pid_offset){PID_OFFSET.Compute();}
-  #endif //EXIST_PID_OFFSET
 
   switch (switch_case) {
     case 1:
-    #if EXIST_VISAO
-    Autonomo();
-    #endif //EXIST_VISAO
+      #if EXIST_VISAO
+      //autonomo
+      Autonomo();
+      #endif //EXIST_VISAO
     break;
 
     case 2:
+      //pwm ajuste
       Ajuste_pwm_manual();
     break;
 
     case 3:
+      //servo ajuste
       Ajuste_servo_manual();
     break;
 
     case 4:
+      //controle remoto
       Controle_remoto();
     break;
   
     default:
+      // garantir que o carro esteja parado
       motor_direito.para();
       motor_esquerdo.para(); 
-      dado_menu = "0";
 
       if (HC06.available()) {
         msg_blue = HC06.read();
 
         #if EXIST_VISAO
-        if(msg_blue == '1'){switch_case = 1;}//autonomo;}
+        if(msg_blue == '1'){switch_case = 1;farol_frente.acender();farol_traseiro.acender();} //autonomo;}
         #endif //EXIST_VISAO
 
-        if(msg_blue == '2'){switch_case = 2;}//pwm ajuste}
+        if(msg_blue == '2'){switch_case = 2;} //pwm ajuste}
 
-        if(msg_blue == '3'){switch_case = 3;}//servo ajuste;}
+        if(msg_blue == '3'){switch_case = 3;} //servo ajuste}
 
-        if(msg_blue == '4'){switch_case = 4;} //controle remoto}
+        if(msg_blue == '4'){switch_case = 4;farol_frente.acender();farol_traseiro.acender();} //controle remoto}
 
         msg_blue = 0;     
       }  
     break;
   }
 
-  Prints();
+  Prints(); // printar todos os dados recolhido
 }
 //*****************************************************************************
 
