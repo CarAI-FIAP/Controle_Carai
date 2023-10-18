@@ -35,8 +35,8 @@
 
 #define EXIST_ULTRA 0 // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
-#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)   // existencia do sensor ultrassonico do meio
-#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da direita
+#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 0)   // existencia do sensor ultrassonico do meio
+#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico da direita
 #define EXIST_ULTRA_ESQUERDA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da esquerda
 #define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)  // existencia dos dados do sensor ultrassonico para print
 
@@ -132,8 +132,8 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
 //Sobre os sensores ultrassonicos:
-#define DISTANCIA_PARAR 75   // distancia minima (em cm) para o carro parar
-#define DISTANCIA_DETECTA 75     // distancia minima (em cm) para detectar a presença de um corpo 100
+#define DISTANCIA_PARAR 90   // distancia minima (em cm) para o carro parar
+#define DISTANCIA_DETECTA 90     // distancia minima (em cm) para detectar a presença de um corpo 100
 
 //-----filtro do sensor ultrassonico-----:
 #define INTERVALO_MEDIA_HCSR04 10    // numero de valores para efetuar a media
@@ -185,7 +185,7 @@ int angulo_minimo = ANGULO_MIN;   // armazena o angulo real maximo que o servo c
 
 #if EXIST_VISAO
 int angulo_visao, angulo_visao_real, angulo_visao_f, angulo_visao_antigo; // armazena o angulo dado pela visão computacional
-int esquerda, direita, angulo_faixa, offset, valor_descartavel;
+int esquerda, direita, angulo_faixa, offset, valor_descartavel,descart;
 int placa_pare,semaforo;
 int angulo_offset;  // angulo oriundo da visão
 #endif //EXIST_VISAO
@@ -789,7 +789,7 @@ void setup() {
   switch_case = 0;     // variavel que controla os casos do switch case do menu
   auto_estado = 0;     // variavel que controla os casos do switch case do modo autonomo
   trava_ultrasson = false;
-  trava_placa = false;
+  trava_placa = false;  
   trava_semafaro = false;
   #endif
 

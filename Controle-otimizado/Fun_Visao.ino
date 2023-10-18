@@ -13,7 +13,7 @@ void  Visao_computacional(){
       sscanf(dados_visao.c_str(), "%d,%d,%d,%d,%d,%d", &angulo_faixa, &angulo_offset, &offset, &esquerda, &direita, &valor_descartavel);
 
     } else if (id == 'B') {
-      sscanf(dados_visao.c_str(), "%d,%d", &placa_pare, &semaforo);
+      sscanf(dados_visao.c_str(),"%d,%d,%d", &descart, &placa_pare, &semaforo);
     }
     
     // recolhe o dado de angulo vindo da visão
@@ -67,7 +67,8 @@ void visao_controle(){
   // armazena o angulo que será printado
   angulo_servo = angulo_visao_real;
 
-  if(time_servo.atingiu_tempo()){servo.colocar_angulo(angulo_visao_real);}  // atuação do servo com intervalo
+  // if(time_servo.atingiu_tempo()){servo.colocar_angulo(angulo_visao_real);}  // atuação do servo com intervalo
+  if(time_servo.atingiu_tempo()){servo.colocar_angulo(ANGULO_INICIAL);}  // atuação do servo com intervalo
   
   // servo.colocar_angulo(angulo_visao_real); // atuação do servo sem intervalo
   

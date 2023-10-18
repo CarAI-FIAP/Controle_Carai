@@ -5,13 +5,17 @@ void Autonomo(){
   // faz a tara do mpu6050
   if(trava_chao){Call_ref_chao();trava_chao = false;}
   #endif //EXIST_MPU6050
+ 
+  int volta_andar = 0;
 
   // freia fofo quando ultrassonico detecta um obstaculo
-  if(trava_ultrasson){if(obstaculo){auto_estado = 2;}else{auto_estado = 1;}}
+  if(trava_ultrasson){if(obstaculo){auto_estado = 2;}else{volta_andar++;}}
 
-  if(trava_placa){if(placa_pare == 1){auto_estado = 2;}else{auto_estado = 1;}}
+  if(trava_placa){if(placa_pare == 1){auto_estado = 2;}else{volta_andar++;}}
 
-  if(trava_semafaro){if(semaforo == 1){auto_estado = 2;}else{auto_estado = 1;}}
+  if(trava_semafaro){if(semaforo == 1){auto_estado = 2;}else{volta_andar++;}}
+
+  if(volta_andar == 3){auto_estado = 1;}
 
 
   if (HC06.available()) {
@@ -85,17 +89,17 @@ void Autonomo(){
       vel_max = VEL_MAX;
 
       //-----------------------------------------------------------------------|
-      //ajuste de velocidade das rodas durante as cuvas (METODO ANTIGO)        |
-      if(angulo_visao > 40){ // melhor angulo = 40                             |
-        //**curva para esquerda**                                              |
-        vel_max_d = VEL_MAX +0.2;  // aumenta a velocidade da roda direita     |
-        vel_max_e = VEL_MAX -0.2;  // diminui a velocidade da roda esquerda    |
-        //                                                                     |
-      }else if(angulo_visao < -40){ // melhor angulo = -40                     |
-        //**curva para direita**                                               |
-        vel_max_d = VEL_MAX -0.2; // diminui a velocidade da roda direita      |
-        vel_max_e = VEL_MAX+0.2;  // aumenta a velocidade da roda esquerda     |
-      }//                                                                      |
+      // //ajuste de velocidade das rodas durante as cuvas (METODO ANTIGO)        |
+      // if(angulo_visao > 40){ // melhor angulo = 40                             |
+      //   //**curva para esquerda**                                              |
+      //   vel_max_d = VEL_MAX +0.2;  // aumenta a velocidade da roda direita     |
+      //   vel_max_e = VEL_MAX -0.2;  // diminui a velocidade da roda esquerda    |
+      //   //                                                                     |
+      // }else if(angulo_visao < -40){ // melhor angulo = -40                     |
+      //   //**curva para direita**                                               |
+      //   vel_max_d = VEL_MAX -0.2; // diminui a velocidade da roda direita      |
+      //   vel_max_e = VEL_MAX+0.2;  // aumenta a velocidade da roda esquerda     |
+      // }//                                                                      |
       //-----------------------------------------------------------------------|
       
       //-------------------------------------------------------------------------------------|

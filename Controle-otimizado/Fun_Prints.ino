@@ -35,13 +35,15 @@ void Prints(){
   #if EXIST_VISAO_DADOS
   dados_print_PC += String(angulo_visao_f); // angulo recebido pela visão [-90,90] com filtro
   dados_print_PC += " ";
-  dados_print_PC += String(angulo_visao_real); // angulo que o servo recebe da visão
-  dados_print_PC += " ";
+  // dados_print_PC += String(angulo_visao_real); // angulo que o servo recebe da visão
+  // dados_print_PC += " ";
   dados_print_PC += String(placa_pare); // angulo que o servo recebe da visão
   dados_print_PC += " ";
   dados_print_PC += String(semaforo); // angulo que o servo recebe da visão
   dados_print_PC += " ";
-  dados_print_PC += "| ";
+  // dados_print_PC += String(dados_visao); // angulo que o servo recebe da visão
+  // dados_print_PC += " ";
+  dados_print_PC += "|||||| ";
   #endif // EXIST_VISAO_DADOS 
 
   #if EXIST_SERVO_DADOS
@@ -83,7 +85,7 @@ void Prints(){
   #endif // EXIST_ULTRA_ESQUERDA 
 
   #if EXIST_ULTRA_MEIO
-  if(distancia_1 = 9999){
+  if(distancia_1 == 9999){
     dados_print_PC += String(distancia_1f); // distancia medida pelo ultrass. do meio em (cm)
     dados_print_PC += " ";
   }else{
@@ -92,7 +94,7 @@ void Prints(){
   }
   #endif // EXIST_ULTRA_MEIO
   #if EXIST_ULTRA_DIREITA
-  if(distancia_1 = 9999){
+  if(distancia_1 == 9999){
     dados_print_PC += "----"; // distancia medida pelo ultrass. do meio em (cm)
     dados_print_PC += " ";
   }else{
@@ -101,7 +103,7 @@ void Prints(){
   }
   #endif // EXIST_ULTRA_DIREITA
   #if EXIST_ULTRA_ESQUERDA
-  if(distancia_1 = 9999){
+  if(distancia_1 == 9999){
     dados_print_PC += "----"; // distancia medida pelo ultrass. do meio em (cm)
     dados_print_PC += " ";
   }else{
