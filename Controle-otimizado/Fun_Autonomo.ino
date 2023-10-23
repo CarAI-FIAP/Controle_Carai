@@ -88,18 +88,22 @@ void Autonomo(){
       vel_max_e = VEL_MAX;
       vel_max = VEL_MAX;
 
-      //-----------------------------------------------------------------------|
-      // //ajuste de velocidade das rodas durante as cuvas (METODO ANTIGO)        |
-      // if(angulo_visao > 40){ // melhor angulo = 40                             |
-      //   //**curva para esquerda**                                              |
-      //   vel_max_d = VEL_MAX +0.2;  // aumenta a velocidade da roda direita     |
-      //   vel_max_e = VEL_MAX -0.2;  // diminui a velocidade da roda esquerda    |
-      //   //                                                                     |
-      // }else if(angulo_visao < -40){ // melhor angulo = -40                     |
-      //   //**curva para direita**                                               |
-      //   vel_max_d = VEL_MAX -0.2; // diminui a velocidade da roda direita      |
-      //   vel_max_e = VEL_MAX+0.2;  // aumenta a velocidade da roda esquerda     |
-      // }//                                                                      |
+      // //-----------------------------------------------------------------------|
+      //ajuste de velocidade das rodas durante as cuvas (METODO ANTIGO)        |
+      if(angulo_visao > 40){ // melhor angulo = 40                             |
+        // PID_VEL_D_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |
+        // PID_VEL_E_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |
+        //**curva para esquerda**                                              |
+        vel_max_d = VEL_MAX +0.15;  // aumenta a velocidade da roda direita     |
+        vel_max_e = VEL_MAX -0.15;  // diminui a velocidade da roda esquerda    |
+        //                                                                     |
+      }else if(angulo_visao < -40){ // melhor angulo = -40                     |
+        // PID_VEL_D_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |
+        // PID_VEL_E_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |                  
+        //**curva para direita**                                               |
+        vel_max_d = VEL_MAX -0.15; // diminui a velocidade da roda direita      |
+        vel_max_e = VEL_MAX +0.15;  // aumenta a velocidade da roda esquerda     |
+      }//                                                                      |
       //-----------------------------------------------------------------------|
       
       //-------------------------------------------------------------------------------------|

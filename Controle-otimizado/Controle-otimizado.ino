@@ -19,12 +19,12 @@
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    // existencia de filtro nos dados do angulo da visão computacional
-#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 0)    // existencia dos dados da visão para print
 
-#define EXIST_MOTOR_DC_DADOS 0 // existencia dos motores dc PWM
+#define EXIST_MOTOR_DC_DADOS 1 // existencia dos motores dc PWM
 
 #define EXIST_ENCODER 1 // existencia dos enconders
-#define EXIST_ENCODER_DADOS 0   // existencia dos dados do encoder para print
+#define EXIST_ENCODER_DADOS 1   // existencia dos dados do encoder para print
 #define EXIST_ENCODER_FILTRO (EXIST_FILTRO && EXIST_ENCODER && 1) 
 
 #define EXIST_MPU6050 0 //define a existencia do MPU6050
@@ -35,13 +35,15 @@
 
 #define EXIST_ULTRA 0 // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
-#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 0)   // existencia do sensor ultrassonico do meio
-#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 1)  // existencia do sensor ultrassonico da direita
+#define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)   // existencia do sensor ultrassonico do meio
+#define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da direita
 #define EXIST_ULTRA_ESQUERDA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da esquerda
 #define EXIST_ULTRA_DADOS (EXIST_ULTRA && 1)  // existencia dos dados do sensor ultrassonico para print
 
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
 #define EXIST_INFRA_DADOS (EXIST_INFRA && 1)   // existencia dos dados do infra vermelho 
+
+#define EXIST_MEDIR_TENSAO 0 // existencia do sensor infravermelho seguidr de linha
 
 #define EXIST_SWITCH_DADOS (EXIST_DADOS && 1)   // existencia dos dados do menu para print
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)  // existencia dos ajustes de grafico
@@ -51,10 +53,10 @@
 // DEFININDO PINOS DO ARDUINO:
 
 // Pinos do motor:
-#define PIN_MD1 12   // pino 1 de controle do motor direito (dominante) 10
-#define PIN_MD2 11   // pino 2 de controle do motor direito 9
-#define PIN_ME1 10     // pino 1 de controle do motor esquerdo (dominante) 12
-#define PIN_ME2 9       // pino 2 de controle do motor esquerdo 11
+#define PIN_MD1 12   // pino 1 de controle do motor direito (dominante) 12
+#define PIN_MD2 11   // pino 2 de controle do motor direito 11
+#define PIN_ME1 10     // pino 1 de controle do motor esquerdo (dominante) 10
+#define PIN_ME2 9       // pino 2 de controle do motor esquerdo 9
 
 // Pinos dos encoders:
 #define PIN_EN_DA 2      // pino A de controle do enconder dieito para arduino MEGA 18
@@ -74,8 +76,8 @@
 #define PIN_ECHO_3 35     // pino echo do ultrassonico 3 esquerda
 
 // Pinos dos sensores infravermelhos
-#define PIN_INFRA_D 46     // pino do sensor infra direito
-#define PIN_INFRA_E 30     // pino do sensor infra esquerdo
+#define PIN_BATERIA_SOLAR A8     // pino do sensor infra direito
+#define PIN_BATERIA_MOTOR A9     // pino do sensor infra esquerdo
 
 #define PIN_FAROL_F 41  // pino dos farois da frente
 #define PIN_FAROL_T 47 // pino dos farois traseiros
@@ -93,7 +95,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.4  // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.48  // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
 
@@ -107,16 +109,16 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 //PID cruzeiro:
 #define KP_MC 400  //bom = 180     exelente = 400
 #define KI_MC 410  //bom = 110     exelente = 410
-#define KD_MC 8    //bom = 5       exelente = 8
+#define KD_MC 32    //bom = 5       exelente = 8
 
 //PID curava:
 #define KP_MCU 400  //bom = 400
-#define KI_MCU 500  //bom = 410
-#define KD_MCU 20   //bom = 8
+#define KI_MCU 410  //bom = 410
+#define KD_MCU 8   //bom = 8
 
 //PID frenagem fofa:
 #define KP_MFF 400   //bom = 400
-#define KI_MFF 950   //bom = 950
+#define KI_MFF 1000   //bom = 950
 #define KD_MFF 5     //bom = 5
 
 //-----filtro da visão-----:
@@ -132,8 +134,8 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define SERVO_SINAL_MAX 2400      // sinal em microsegundos do angulo maximo do servo (configuração do servo)
 
 //Sobre os sensores ultrassonicos:
-#define DISTANCIA_PARAR 90   // distancia minima (em cm) para o carro parar
-#define DISTANCIA_DETECTA 90     // distancia minima (em cm) para detectar a presença de um corpo 100
+#define DISTANCIA_PARAR 60   // distancia minima (em cm) para o carro parar
+#define DISTANCIA_DETECTA 60     // distancia minima (em cm) para detectar a presença de um corpo 100
 
 //-----filtro do sensor ultrassonico-----:
 #define INTERVALO_MEDIA_HCSR04 10    // numero de valores para efetuar a media
@@ -173,6 +175,10 @@ double pwm_max = PWM_MAXIMO;   // pwm minimo que o carro precisa para andar
 double kp_mc = KP_MC;   // variavel de armazenamento de kp do PID
 double ki_mc = KI_MC;   // variavel de armazenamento de ki do PID
 double kd_mc = KD_MC;   // variavel de armazenamento de kd do PID
+
+double kp_mcu = KP_MCU;   // variavel de armazenamento de kp do PID
+double ki_mcu = KI_MCU;   // variavel de armazenamento de ki do PID
+double kd_mcu = KD_MCU;   // variavel de armazenamento de kd do PID
 
 double angulo_z_f, angulo_z_f_ant;  // armazenam angulos de inclinação do mpu 
 double angulo_x_f;  // armazenam angulos de giro do mpu
@@ -220,6 +226,8 @@ String dados_print_PC = " ";  // armazena os dados que serão printado no monito
 String dado_menu = "0"; // armazena o estado do switch case
 String dados_visao = " "; // armazena os dado oriondos da visão computacional
 
+float tensao_bateria_solar;
+float tensao_bateria_motor;
 
 char msg_blue; // armazena os dados recebido do bluetooth ou monitor serial do pc 
 
@@ -414,14 +422,16 @@ Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 
 
-Contador_tempo time_ultra_meio(200); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
-Contador_tempo time_ultra_direita(100); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
-Contador_tempo time_ultra_esquerda(100); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
+Contador_tempo time_ultra_meio(10); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
+Contador_tempo time_ultra_direita(10); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
+Contador_tempo time_ultra_esquerda(10); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
 
 Contador_tempo time_print(10);  //itervalo de tempo para printar os dados 
-Contador_tempo time_servo(50);  //itervalo de tempo com que o servo vai computar os dados recebidos quando no modo autonomo. 
+Contador_tempo time_servo(50);  //itervalo de tempo com que o servo vai computar os dados recebidos quando no modo autonomo. elhor = 50
 
-Contador_tempo time_andar(1000);  //itervalo de tempo para printar os dados 
+Contador_tempo time_andar(1000);  
+
+Contador_tempo time_leitura_ultra(300);
 
 
 //-----------------------------------------------------------------------------
@@ -451,6 +461,38 @@ class Servos {
 Servos servo(PIN_SERVO, SERVO_SINAL_MIN, SERVO_SINAL_MAX );
 
 //-----------------------------------------------------------------------------
+//Classe para controle dos sensores de tensão
+class Sensor_tensao {
+  int pinoSensor;
+  float tensaoEntrada; 
+  float tensaoMedida; 
+  float valorR1; 
+  float valorR2; 
+  int leituraSensor; 
+
+ public:
+  Sensor_tensao(int pin){
+  pinoSensor = pin;
+  tensaoEntrada = 0.0;
+  tensaoMedida = 0.0;
+  valorR1 = 30000.0;
+  valorR2 = 7500.0;
+  leituraSensor = 0;
+  pinMode(pinoSensor, INPUT); 
+  }
+
+  float medir() {     
+   leituraSensor = analogRead(pinoSensor); 
+   tensaoEntrada = (leituraSensor * 5.0) / 1024.0;
+   tensaoMedida = tensaoEntrada / (valorR2/(valorR1+valorR2));
+   return tensaoMedida;    
+  }
+
+};
+Sensor_tensao tensao_solar(PIN_BATERIA_SOLAR);
+Sensor_tensao tensao_motor(PIN_BATERIA_MOTOR);
+
+//-----------------------------------------------------------------------------
 #if EXIST_ULTRA
 //Classe para controle dos sensores ultrassonicos
 class Sensor_ultrassonico {
@@ -471,26 +513,23 @@ class Sensor_ultrassonico {
 
  float Calcula_dist(){
    noInterrupts();
-   digitalWrite(pin_trig, HIGH);
-   delayMicroseconds(10);
-   digitalWrite(pin_trig, LOW);
+    digitalWrite(pin_trig, HIGH);
+    delayMicroseconds(10);
+    digitalWrite(pin_trig, LOW);
 
-  unsigned long timeout = 20000;  // Tempo máximo de espera
-  tempoEcho = pulseIn(pin_echo, HIGH, timeout); // Mede o tempo de eco com timeout
-  if(tempoEcho == 0) {
-    // Se pulseIn atingir o timeout, defina a distância como um valor grande (por exemplo, 9999)
-    dist = 9999;
-    dist_grande = true;
-  }else{
-    dist = (tempoEcho * velocidadeSom) / 2 * 100;
-    dist_grande = false;
-  }
-
-  //  tempoEcho = pulseIn(pin_echo, HIGH);
-  //  dist = ((tempoEcho*velocidadeSom)/2)*100;
+    unsigned long timeout = 10000;  // Tempo máximo de espera
+    tempoEcho = pulseIn(pin_echo, HIGH, timeout); // Mede o tempo de eco com timeout
+    if(tempoEcho == 0) {
+      // Se pulseIn atingir o timeout, defina a distância como um valor grande (por exemplo, 9999)
+      dist = 9999;
+      dist_grande = true;
+    }else{
+     dist = (tempoEcho * velocidadeSom) / 2 * 100;
+     dist_grande = false;
+    }
    interrupts();
-   return dist;
- }
+    return dist;
+  }
 
  bool Detectar_obstaculo(float distancia){
   if (distancia < DISTANCIA_DETECTA){
@@ -832,13 +871,13 @@ void setup() {
 
 //-----------------------------------------------------------------------------
 void loop() {
-  
+
   #if EXIST_VISAO
   Visao_computacional();  // pegar os valores da visão
   #endif // EXIST_VISAO
 
   #if EXIST_ULTRA
-  Distancia_Sensor();  // pegar a distancia medida pelos sensores
+  if(time_leitura_ultra.atingiu_tempo()){ Distancia_Sensor();}  // pegar a distancia medida pelos sensores
   #endif // EXIST_ULTRA
     
   #if EXIST_ENCODER

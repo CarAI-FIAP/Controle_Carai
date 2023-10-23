@@ -68,24 +68,15 @@ void Controle_remoto(){
       vel_max_e = VEL_MAX;
       vel_max = VEL_MAX;
 
-      // if(angulo_servo < ANGULO_ZERO +40){
-      //   vel_max_d = VEL_MAX + 0.2;
-      //   vel_max_e = VEL_MAX - 0.2;
+      // if(angulo_servo < ANGULO_ZERO -40){
+      //   // ligar seta da direita
+      //   seta_direita.piscar(500);
+      // }else{seta_direita.acender();}  
 
-      // } else if(angulo_servo > ANGULO_ZERO -40){
-      //   vel_max_d = VEL_MAX + 0.2;
-      //   vel_max_e = VEL_MAX - 0.2;        
-      // } 
-
-      if(angulo_servo < ANGULO_ZERO -40){
-        // ligar seta da direita
-        seta_direita.piscar(500);
-      }else{seta_direita.acender();}
-
-      if(angulo_servo > ANGULO_ZERO +40){
-        //ligar seta da esquerda
-        seta_esquerda.piscar(500);
-      }else{seta_esquerda.acender();}
+      // if(angulo_servo > ANGULO_ZERO +40){
+      //   //ligar seta da esquerda
+      //   seta_esquerda.piscar(500);
+      // }else{seta_esquerda.acender();}
       
       Andar();
     break;

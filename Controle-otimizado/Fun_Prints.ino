@@ -27,8 +27,8 @@ void Prints(){
   dados_print_PC += " ";
   dados_print_PC += String(vel_me_f);  // velocidade do motor esquerdo em (m/s)
   dados_print_PC += " ";
-  dados_print_PC += String(dist_total);  // distancia total percorrida pelo carro em (metros)
-  dados_print_PC += " ";
+  // dados_print_PC += String(dist_total);  // distancia total percorrida pelo carro em (metros)
+  // dados_print_PC += " ";
   dados_print_PC += "| ";
   #endif // EXIST_ENCODER_DADOS
 
@@ -43,7 +43,7 @@ void Prints(){
   dados_print_PC += " ";
   // dados_print_PC += String(dados_visao); // angulo que o servo recebe da visão
   // dados_print_PC += " ";
-  dados_print_PC += "|||||| ";
+  dados_print_PC += "| ";
   #endif // EXIST_VISAO_DADOS 
 
   #if EXIST_SERVO_DADOS
@@ -113,6 +113,15 @@ void Prints(){
   #endif // EXIST_ULTRA_ESQUERDA
   dados_print_PC += "| ";
   #endif // EXIST_ULTRA_DADOS
+
+  #if EXIST_MEDIR_TENSAO
+  tensao_bateria_solar = tensao_solar.medir();
+  tensao_bateria_motor = tensao_motor.medir();
+  dados_print_PC += String(tensao_bateria_solar); 
+  dados_print_PC += " ";
+  dados_print_PC += String(tensao_bateria_motor);
+  dados_print_PC += " ";
+  #endif //EXIST_MEDIR_TENSAO
 
   #if EXIST_AJUSTE_GRAFICO
   dados_print_PC += String(0); 

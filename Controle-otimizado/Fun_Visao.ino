@@ -67,8 +67,8 @@ void visao_controle(){
   // armazena o angulo que será printado
   angulo_servo = angulo_visao_real;
 
-  // if(time_servo.atingiu_tempo()){servo.colocar_angulo(angulo_visao_real);}  // atuação do servo com intervalo
-  if(time_servo.atingiu_tempo()){servo.colocar_angulo(ANGULO_INICIAL);}  // atuação do servo com intervalo
+  if(time_servo.atingiu_tempo()){servo.colocar_angulo(angulo_visao_real);}  // atuação do servo com intervalo
+  // if(time_servo.atingiu_tempo()){servo.colocar_angulo(ANGULO_INICIAL);}  // atuação do servo com intervalo
   
   // servo.colocar_angulo(angulo_visao_real); // atuação do servo sem intervalo
   
