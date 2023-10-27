@@ -22,8 +22,8 @@ void Ajuste_pwm_manual(){
       if(pwm < 0){pwm = 0;}        
       msg_blue = 0;         
     }       
-    motor_direito.frente(pwm);
-    motor_esquerdo.frente(pwm);   
+    motor_direito.frente(100);
+    motor_esquerdo.frente(100);   
   }
   #endif
 }

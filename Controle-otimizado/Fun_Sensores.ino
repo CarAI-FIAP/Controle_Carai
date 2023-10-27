@@ -9,8 +9,6 @@ void Distancia_Sensor(){
   #endif // EXIST_ULTRA_FILTRO
   obstaculo_1 = HCSR04_1.Detectar_obstaculo(distancia_1f); //Detecta a existencia de um objeto
   if(obstaculo_1){
-    // valida a existencia de um objeto, apenas se o mesmo for detectado em um intervalo de tempo
-    // if(time_ultra_meio.atingiu_tempo()){detec_meio = 1;}
     detec_meio = 1;
   }else{detec_meio = 0;}
   obstaculo_1 = false;
@@ -24,7 +22,6 @@ void Distancia_Sensor(){
   #endif // EXIST_ULTRA_FILTRO
   obstaculo_2 = HCSR04_2.Detectar_obstaculo(distancia_2f);
   if(obstaculo_2){
-    // if(time_ultra_direita.atingiu_tempo()){detec_direita = 1;}
     detec_direita = 1;
   }else{detec_direita = 0;} 
   obstaculo_2 = false;
@@ -39,7 +36,6 @@ void Distancia_Sensor(){
   #endif // EXIST_ULTRA_FILTRO
   obstaculo_3 = HCSR04_3.Detectar_obstaculo(distancia_3f);
   if(obstaculo_3){ 
-    // if(time_ultra_esquerda.atingiu_tempo()){detec_esquerda = 1;}
     detec_esquerda = 1;
   }else{detec_esquerda = 0;} 
   obstaculo_3 = false;

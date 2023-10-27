@@ -22,6 +22,7 @@ void  Visao_computacional(){
     //manter carro na reta
     if(abs(angulo_visao) <= 3){angulo_visao = 0;}
   
+    if(inicia_normal){
     //garantir que não tera picos de angulos fora do intervalo [-90,90]
     if(abs(angulo_visao) > 90){angulo_visao = angulo_visao_antigo;} 
 
@@ -30,6 +31,7 @@ void  Visao_computacional(){
       if(angulo_visao_antigo*angulo_visao < 0){
         angulo_visao = angulo_visao_antigo;
       }
+    }
     }
     
     // salva o angulo atual como antigo

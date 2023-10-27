@@ -6,7 +6,7 @@ void Controle_remoto(){
   #endif
 
   if(trava_ultrasson){if(obstaculo){remoto_estado = 2;}else{remoto_estado = 1;}}
-
+  
   if (HC06.available()) {
     msg_blue = HC06.read();
     if(msg_blue == 'E'){
@@ -17,8 +17,8 @@ void Controle_remoto(){
 
     }else if(msg_blue == 'D'){
       // frenagem fofo
-      seta_direita.acender();
-      seta_esquerda.acender();
+      seta_direita.apagar();
+      seta_esquerda.apagar();
       trava_ultrasson = false;
       remoto_estado = 2;
 
@@ -67,18 +67,20 @@ void Controle_remoto(){
       vel_max_d = VEL_MAX;
       vel_max_e = VEL_MAX;
       vel_max = VEL_MAX;
+      // seta_direita.piscar(500);
+      // seta_esquerda.piscar(500);
 
-      // if(angulo_servo < ANGULO_ZERO -40){
-      //   // ligar seta da direita
-      //   seta_direita.piscar(500);
-      // }else{seta_direita.acender();}  
+      if(angulo_servo < ANGULO_ZERO -40){
+        // ligar seta da direita
+        seta_direita.piscar(500);
+      }else{seta_direita.apagar();}  
 
-      // if(angulo_servo > ANGULO_ZERO +40){
-      //   //ligar seta da esquerda
-      //   seta_esquerda.piscar(500);
-      // }else{seta_esquerda.acender();}
+      if(angulo_servo > ANGULO_ZERO +40){
+        //ligar seta da esquerda
+        seta_esquerda.piscar(500);
+      }else{seta_esquerda.apagar();}
       
-      Andar();
+      // Andar();
     break;
 
     case 2:

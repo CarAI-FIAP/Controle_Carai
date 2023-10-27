@@ -9,13 +9,13 @@ void Autonomo(){
   int volta_andar = 0;
 
   // freia fofo quando ultrassonico detecta um obstaculo
-  if(trava_ultrasson){if(obstaculo){auto_estado = 2;}else{volta_andar++;}}
+  if(trava_ultrasson){if(obstaculo){auto_estado = 2; pisca_alerta = true;}else{volta_andar++;pisca_alerta = false;}}
 
   if(trava_placa){if(placa_pare == 1){auto_estado = 2;}else{volta_andar++;}}
 
   if(trava_semafaro){if(semaforo == 1){auto_estado = 2;}else{volta_andar++;}}
 
-  if(volta_andar == 3){auto_estado = 1;}
+  if(volta_andar == 3){auto_estado = 1;farol_frente.acender();}
 
 
   if (HC06.available()) {
@@ -44,33 +44,42 @@ void Autonomo(){
       trava_ultrasson = false;  // impedir que o ultrassonico atue
       trava_placa = false;
       trava_semafaro = false;
+      tarava_ultra_on = false;
+      inicia_normal = false;
 
       trava_chao = true;    // permite que o mpu6050 calcule a tara novamente
       auto_estado = 0;    // faz com que o servo deixe as rodas retas
       switch_case = 0;    // volta para o menu inicial
+      inicio = 0;
 
     }else if(msg_blue == 'E'){
       // **iniciar o andar do carro**
+      inicio = 1;
       farol_traseiro.apagar(); //acender os farois de freio
       trava_ultrasson = true; //ativa os sensores ultrassonicos
       trava_placa = true;
       trava_semafaro = true;
       auto_estado = 1; 
+      inicia_normal = true;
 
     }else if(msg_blue == 'D'){
       // **freiar fofo manualmente**
-      seta_direita.acender();
-      seta_esquerda.acender();
+      seta_direita.piscar(500);
+      seta_esquerda.piscar(500);
       
       trava_ultrasson = false; // impedir que o ultrassonico atue
       trava_placa = false;
       trava_semafaro = false;
+      tarava_ultra_on = false;
+      inicia_normal = false;
 
       auto_estado = 2; // vai para o case que freia fofo
 
-    }else if(msg_blue == 'F'){
-      //alinha o servo
-      auto_estado = 0;
+    }else if(msg_blue == '2'){
+      tarava_ultra_on = true;
+
+    }if(msg_blue == '1'){
+      tarava_ultra_on = false;
     }
   }
   
@@ -94,7 +103,7 @@ void Autonomo(){
         // PID_VEL_D_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |
         // PID_VEL_E_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |
         //**curva para esquerda**                                              |
-        vel_max_d = VEL_MAX +0.15;  // aumenta a velocidade da roda direita     |
+        vel_max_d = VEL_MAX +0.2;  // aumenta a velocidade da roda direita     |
         vel_max_e = VEL_MAX -0.15;  // diminui a velocidade da roda esquerda    |
         //                                                                     |
       }else if(angulo_visao < -40){ // melhor angulo = -40                     |
@@ -102,7 +111,7 @@ void Autonomo(){
         // PID_VEL_E_PWM.SetTunings(kp_mcu, ki_mcu, kd_mcu);      //              |                  
         //**curva para direita**                                               |
         vel_max_d = VEL_MAX -0.15; // diminui a velocidade da roda direita      |
-        vel_max_e = VEL_MAX +0.15;  // aumenta a velocidade da roda esquerda     |
+        vel_max_e = VEL_MAX +0.2;  // aumenta a velocidade da roda esquerda     |
       }//                                                                      |
       //-----------------------------------------------------------------------|
       
@@ -130,15 +139,15 @@ void Autonomo(){
       if(angulo_visao <= -10){
         // ligar seta da direita
         seta_direita.piscar(500);
-      }else{seta_direita.acender();}
+      }else{seta_direita.apagar();}
 
       if(angulo_visao >= 10){
         //ligar seta da esquerda
         seta_esquerda.piscar(500);
-      }else{seta_esquerda.acender();}
+      }else{seta_esquerda.apagar();}
       
       farol_traseiro.apagar(); // apagar o farol de freio
-      Andar();
+     // Andar();
       visao_controle();
     break;
 
@@ -146,6 +155,22 @@ void Autonomo(){
     case 2:
       // **freiar fofo com PID**
       farol_traseiro.acender(); // acender o farol de freio
+      if(pisca_alerta){
+        seta_direita.piscar(500);
+        seta_esquerda.piscar(500);
+
+        if(time_farol_alto.atingiu_tempo()){
+          contador_pisca ++;
+          if(contador_pisca == 1){
+            trava_piscar_farol_alto = true;
+          }
+          if(contador_pisca == 2){
+            contador_pisca = 0;
+            trava_piscar_farol_alto = false;
+          }
+        }
+        if(trava_piscar_farol_alto){farol_frente.piscar_2(350,0);}
+      }
       
       #if EXIST_PID_VEL 
       // // parametros de PID para uma frenagem fofa
@@ -163,8 +188,8 @@ void Autonomo(){
   
     //------------------------------------------------------
     default:
-      seta_direita.acender();
-      seta_esquerda.acender();
+      seta_direita.apagar();
+      seta_esquerda.apagar();
       servo.colocar_angulo(ANGULO_INICIAL);    
     break;
   }

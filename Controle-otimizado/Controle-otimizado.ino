@@ -19,7 +19,7 @@
 
 #define EXIST_VISAO 1 // existencia do modulo bluetooth HC06
 #define EXIST_VISAO_FILTRO (EXIST_FILTRO && EXIST_VISAO && 0)    // existencia de filtro nos dados do angulo da visão computacional
-#define EXIST_VISAO_DADOS (EXIST_VISAO && 0)    // existencia dos dados da visão para print
+#define EXIST_VISAO_DADOS (EXIST_VISAO && 1)    // existencia dos dados da visão para print
 
 #define EXIST_MOTOR_DC_DADOS 1 // existencia dos motores dc PWM
 
@@ -31,9 +31,9 @@
 #define EXIST_GYRO_DADOS (EXIST_MPU6050 && 1)  // existencia dos dados do giroscopio para print
 #define EXIST_GYRO_FILTRO (EXIST_FILTRO && 1) //define a existencia de foltro do giroscopio
 
-#define EXIST_SERVO_DADOS 0 // existencia do servo motoror
+#define EXIST_SERVO_DADOS 1 // existencia do servo motoror
 
-#define EXIST_ULTRA 0 // existencia do sensor ultrassonico
+#define EXIST_ULTRA 1 // existencia do sensor ultrassonico
 #define EXIST_ULTRA_FILTRO (EXIST_FILTRO && EXIST_ULTRA && 0) // existencia do filtro para o sensor ultrassonico
 #define EXIST_ULTRA_MEIO (EXIST_ULTRA && 1)   // existencia do sensor ultrassonico do meio
 #define EXIST_ULTRA_DIREITA (EXIST_ULTRA && 0)  // existencia do sensor ultrassonico da direita
@@ -43,7 +43,7 @@
 #define EXIST_INFRA 0 // existencia do sensor infravermelho seguidr de linha
 #define EXIST_INFRA_DADOS (EXIST_INFRA && 1)   // existencia dos dados do infra vermelho 
 
-#define EXIST_MEDIR_TENSAO 0 // existencia do sensor infravermelho seguidr de linha
+#define EXIST_MEDIR_TENSAO 1 // existencia do sensor infravermelho seguidr de linha
 
 #define EXIST_SWITCH_DADOS (EXIST_DADOS && 1)   // existencia dos dados do menu para print
 #define EXIST_AJUSTE_GRAFICO (EXIST_DADOS && 0)  // existencia dos ajustes de grafico
@@ -76,13 +76,13 @@
 #define PIN_ECHO_3 35     // pino echo do ultrassonico 3 esquerda
 
 // Pinos dos sensores infravermelhos
-#define PIN_BATERIA_SOLAR A8     // pino do sensor infra direito
-#define PIN_BATERIA_MOTOR A9     // pino do sensor infra esquerdo
+#define PIN_BATERIA_SOLAR A10     // pino do sensor infra direito
+#define PIN_BATERIA_MOTOR A8     // pino do sensor infra esquerdo
 
 #define PIN_FAROL_F 41  // pino dos farois da frente
 #define PIN_FAROL_T 47 // pino dos farois traseiros
-#define PIN_SETA_D 45  // pino da seta da direita
-#define PIN_SETA_E 43 // pino da seta da esquerda
+#define PIN_SETA_D 43  // pino da seta da direita
+#define PIN_SETA_E 45 // pino da seta da esquerda
 
 // Pinos do modulo bluetooth
 SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
@@ -95,7 +95,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 #define PWM_MINIMO 80     // pwm minimo para fazer o motor girar (0 a 225)
 
 //Sobre os encoders:
-#define VEL_MAX 0.48  // velocidade maxima (m/s) que o carro deve atingir 
+#define VEL_MAX 0.35  // velocidade maxima (m/s) que o carro deve atingir 
 #define RAIO_RODA 0.175     // raio da roda em metros
 #define NUM_PULSO_VOLTA 2880.0     // numero de opulsos necessarios para o enconder contabilizar 1 volta 1440.0 = 1 volta | 2880.0 = 2 voltas
 
@@ -109,7 +109,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 //PID cruzeiro:
 #define KP_MC 400  //bom = 180     exelente = 400
 #define KI_MC 410  //bom = 110     exelente = 410
-#define KD_MC 32    //bom = 5       exelente = 8
+#define KD_MC 8    //bom = 5       exelente = 8
 
 //PID curava:
 #define KP_MCU 400  //bom = 400
@@ -163,6 +163,7 @@ SoftwareSerial HC06(50, 51); // pinos TX, RX do bluetooth para arduino MEGA
 int switch_case = 1;    // variavel que controla os casos do switch case do menu (setado para o modo autonomo)
 int auto_estado = 1;    // variavel que controla os casos do switch case do modo autonomo (setado para andar)
 int remoto_estado = 0;  // variavel que controla os casos do switch case do modo de controle remoto
+int inicio;
 
 int estado_motor;   // indica por meio de 0 ou 1 se o motor está ligado ou desligado
 
@@ -202,6 +203,10 @@ bool obstaculo_2 = false; // armazena a indicação de obstaculo no caminho do s
 bool obstaculo_3 = false; // armazena a indicação de obstaculo no caminho do sensor 3
 bool dist_grande = false; // trava para evitar que o ultrassonico ocupe muito tempo
 bool trava_ultrasson = true;  // trava para evitar que o ultrassonico pare o carro 
+bool tarava_ultra_on = false;
+bool inicia_normal = false;
+bool pisca_alerta = false;
+bool trava_piscar_farol_alto = false;
 
 bool trava_placa = true;
 bool trava_semafaro = true;
@@ -214,6 +219,7 @@ bool trava_pid_vel = false;  // trava para desligar o PID da velocidade
 bool detec_curva = false;  // trava utilizada para detectar curvas
 
 int dado_infra;  // armazena os dados do sensor infravermelho
+int contador_pisca;
 
 double vel_max = VEL_MAX;  // armazenam a velocidade maxima (m/s) dos motores 
 double vel_max_d = VEL_MAX;  // armazenam a velocidade maxima (m/s) do motores direito 
@@ -350,13 +356,15 @@ class Leds {
   int pin_led;
   unsigned long intervalo;
   unsigned long ultima_atualizacao;
-  bool trava ;
+  bool trava;
+  int cont;
 
  public:
   Leds(int pin_1){
     pin_led = pin_1;
     pinMode(pin_led, OUTPUT);  
     trava = true;
+    cont = 0;
   }
 
   void acender() {
@@ -377,6 +385,26 @@ class Leds {
       }else{
         digitalWrite(pin_led, HIGH);
         trava = true;
+      }
+
+    }
+  }
+
+  void piscar_2(unsigned long intervalo, int para) {
+    unsigned long tempo_atual = millis();
+    if(tempo_atual - ultima_atualizacao >= intervalo){
+      cont = para;
+      ultima_atualizacao = tempo_atual;
+      if(cont<=1){
+      if(trava){
+        digitalWrite(pin_led, LOW);
+        trava = false;
+        
+      }else{
+        digitalWrite(pin_led, HIGH);
+        trava = true;
+        cont++;
+      }
       }
 
     }
@@ -421,17 +449,14 @@ Contador_tempo time_frenagem_fofo_e(TIME_FRENAGEM_FOFO);
 Contador_tempo time_acelera_fofo_d(TIME_ACELERA_FOFO);
 Contador_tempo time_acelera_fofo_e(TIME_ACELERA_FOFO);
 
-
-Contador_tempo time_ultra_meio(10); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
-Contador_tempo time_ultra_direita(10); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
-Contador_tempo time_ultra_esquerda(10); //tempo que o sensor precisa detectar para considerar um objeto valido a frenagem
-
-Contador_tempo time_print(10);  //itervalo de tempo para printar os dados 
+Contador_tempo time_print(350);  //itervalo de tempo para printar os dados 
 Contador_tempo time_servo(50);  //itervalo de tempo com que o servo vai computar os dados recebidos quando no modo autonomo. elhor = 50
 
 Contador_tempo time_andar(1000);  
 
-Contador_tempo time_leitura_ultra(300);
+Contador_tempo time_leitura_ultra(800);
+
+Contador_tempo time_farol_alto(6000);
 
 
 //-----------------------------------------------------------------------------
@@ -517,7 +542,7 @@ class Sensor_ultrassonico {
     delayMicroseconds(10);
     digitalWrite(pin_trig, LOW);
 
-    unsigned long timeout = 10000;  // Tempo máximo de espera
+    unsigned long timeout = 8000;  // Tempo máximo de espera
     tempoEcho = pulseIn(pin_echo, HIGH, timeout); // Mede o tempo de eco com timeout
     if(tempoEcho == 0) {
       // Se pulseIn atingir o timeout, defina a distância como um valor grande (por exemplo, 9999)
